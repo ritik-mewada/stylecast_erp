@@ -12,6 +12,7 @@ import inventoryRoutes from "./routes/inventory";
 import orderRoutes from "./routes/order";
 import shippingRoutes from "./routes/shipping";
 import { setupSwagger } from "./config/swagger";
+import analyticsRoutes from "./routes/analytics";
 
 const app = express();
 
@@ -27,6 +28,7 @@ app.use("/products", productRoutes);
 app.use("/inventory", inventoryRoutes);
 app.use("/orders", orderRoutes);
 app.use("/shipping", shippingRoutes);
+app.use("/analytics", analyticsRoutes);
 
 app.get("/", (req, res) => {
   res.send("Welcome to the StyleCast ERP API");

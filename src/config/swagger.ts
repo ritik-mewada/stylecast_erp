@@ -662,9 +662,205 @@ const swaggerDocument = {
         },
       },
     },
+
+    "/analytics/overview": {
+      get: {
+        tags: ["Analytics"],
+        summary: "Get analytics overview",
+        description:
+          "Returns high-level brand analytics including total orders, total sales, total products, and total active products. Supports time ranges: daily, weekly, monthly.",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            in: "query",
+            name: "range",
+            schema: {
+              type: "string",
+              enum: ["daily", "weekly", "monthly"],
+              example: "monthly",
+            },
+            description: "Optional analytics time range",
+          },
+        ],
+        responses: {
+          "200": {
+            description: "Overview analytics fetched successfully",
+          },
+          "401": { description: "Unauthorized" },
+          "403": { description: "Forbidden" },
+        },
+      },
+    },
+
+    "/analytics/top-products": {
+      get: {
+        tags: ["Analytics"],
+        summary: "Get top-selling products",
+        description:
+          "Returns top-selling products for the authenticated brand based on total units sold and revenue. Supports time ranges: daily, weekly, monthly.",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            in: "query",
+            name: "limit",
+            schema: { type: "integer", example: 5 },
+            description: "Maximum number of products to return",
+          },
+          {
+            in: "query",
+            name: "range",
+            schema: {
+              type: "string",
+              enum: ["daily", "weekly", "monthly"],
+              example: "weekly",
+            },
+            description: "Optional analytics time range",
+          },
+        ],
+        responses: {
+          "200": {
+            description: "Top products fetched successfully",
+          },
+          "401": { description: "Unauthorized" },
+          "403": { description: "Forbidden" },
+        },
+      },
+    },
+
+    "/analytics/low-stock": {
+      get: {
+        tags: ["Analytics"],
+        summary: "Get low stock summary",
+        description:
+          "Returns inventory items where quantity is less than or equal to the configured low stock threshold.",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          "200": {
+            description: "Low stock analytics fetched successfully",
+          },
+          "401": { description: "Unauthorized" },
+          "403": { description: "Forbidden" },
+        },
+      },
+    },
+
+    "/analytics/order-status": {
+      get: {
+        tags: ["Analytics"],
+        summary: "Get order status summary",
+        description:
+          "Returns counts of orders grouped by order status for the authenticated brand. Supports time ranges: daily, weekly, monthly.",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            in: "query",
+            name: "range",
+            schema: {
+              type: "string",
+              enum: ["daily", "weekly", "monthly"],
+              example: "daily",
+            },
+            description: "Optional analytics time range",
+          },
+        ],
+        responses: {
+          "200": {
+            description: "Order status analytics fetched successfully",
+          },
+          "401": { description: "Unauthorized" },
+          "403": { description: "Forbidden" },
+        },
+      },
+    },
+
+    "/analytics/inventory-turnover": {
+      get: {
+        tags: ["Analytics"],
+        summary: "Get inventory turnover",
+        description:
+          "Returns an inventory turnover approximation for the authenticated brand. Supports time ranges: daily, weekly, monthly.",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            in: "query",
+            name: "range",
+            schema: {
+              type: "string",
+              enum: ["daily", "weekly", "monthly"],
+              example: "monthly",
+            },
+            description: "Optional analytics time range",
+          },
+        ],
+        responses: {
+          "200": {
+            description: "Inventory turnover fetched successfully",
+          },
+          "401": { description: "Unauthorized" },
+          "403": { description: "Forbidden" },
+        },
+      },
+    },
+
+    "/analytics/conversion-rate": {
+      get: {
+        tags: ["Analytics"],
+        summary: "Get conversion rate",
+        description:
+          "Returns conversion rate for the authenticated brand using marketplace traffic data synced into traffic_metrics. Supports time ranges: daily, weekly, monthly.",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            in: "query",
+            name: "range",
+            schema: {
+              type: "string",
+              enum: ["daily", "weekly", "monthly"],
+              example: "weekly",
+            },
+            description: "Optional analytics time range",
+          },
+        ],
+        responses: {
+          "200": {
+            description: "Conversion rate fetched successfully",
+          },
+          "401": { description: "Unauthorized" },
+          "403": { description: "Forbidden" },
+        },
+      },
+    },
   },
 };
 
 export const setupSwagger = (app: Express) => {
-  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+  app.use(
+    "/api-docs",
+    swaggerUi.serve,
+    swaggerUi.setup(swaggerDocument, {
+      swaggerOptions: {
+        responseInterceptor: (response: any) => {
+          if (response.url.includes("/auth/login")) {
+            const data = JSON.parse(response.text);
+
+            if (data.token) {
+              localStorage.setItem("jwt_token", data.token);
+            }
+          }
+
+          return response;
+        },
+
+        requestInterceptor: (req: any) => {
+          const token = localStorage.getItem("jwt_token");
+
+          if (token) {
+            req.headers["Authorization"] = `Bearer ${token}`;
+          }
+
+          return req;
+        },
+      },
+    }),
+  );
 };
