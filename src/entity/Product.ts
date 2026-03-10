@@ -7,9 +7,11 @@ import {
   ManyToOne,
   JoinColumn,
   OneToMany,
+  Index,
 } from "typeorm";
 import { Brand } from "./Brand";
 import { ProductVariant } from "./ProductVariant";
+import { ProductImage } from "./ProductImage";
 
 export enum ProductStatus {
   ACTIVE = "active",
@@ -17,6 +19,9 @@ export enum ProductStatus {
 }
 
 @Entity("products")
+@Index(["brandId"])
+@Index(["brandId", "status"])
+@Index(["brandId", "category"])
 export class Product {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
@@ -31,7 +36,7 @@ export class Product {
   category!: string;
 
   @Column({ type: "decimal", precision: 10, scale: 2 })
-  basePrice!: number;
+  price!: number;
 
   @Column({
     type: "enum",
@@ -49,6 +54,9 @@ export class Product {
 
   @OneToMany(() => ProductVariant, (variant) => variant.product)
   variants!: ProductVariant[];
+
+  @OneToMany(() => ProductImage, (image) => image.product)
+  images!: ProductImage[];
 
   @CreateDateColumn()
   createdAt!: Date;

@@ -1,6 +1,7 @@
 import { Response } from "express";
 import { ProductService } from "../services/product";
 import { AuthRequest } from "../middleware/auth";
+import { ProductStatus } from "../entity/Product";
 
 const productService = new ProductService();
 
@@ -11,6 +12,7 @@ export class ProductController {
         req.user!.brandId,
         req.body,
       );
+
       return res.status(201).json(result);
     } catch (error: any) {
       return res.status(400).json({
@@ -21,7 +23,16 @@ export class ProductController {
 
   async getAll(req: AuthRequest, res: Response) {
     try {
-      const result = await productService.getProducts(req.user!.brandId);
+      const { page, limit, category, status } = req.query;
+
+      const result = await productService.getProducts(
+        req.user!.brandId,
+        Number(page) || 1,
+        Number(limit) || 20,
+        category as string | undefined,
+        status as ProductStatus | undefined,
+      );
+
       return res.status(200).json(result);
     } catch (error: any) {
       return res.status(400).json({
@@ -36,6 +47,7 @@ export class ProductController {
         String(req.params.id),
         req.user!.brandId,
       );
+
       return res.status(200).json(result);
     } catch (error: any) {
       return res.status(404).json({
@@ -66,6 +78,7 @@ export class ProductController {
         String(req.params.id),
         req.user!.brandId,
       );
+
       return res.status(200).json(result);
     } catch (error: any) {
       return res.status(400).json({

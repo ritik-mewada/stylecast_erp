@@ -1,12 +1,13 @@
 import { AppDataSource } from "../data-source";
 import { Product, ProductStatus } from "../entity/Product";
 import { ProductVariant } from "../entity/ProductVariant";
-
+import { ProductImage } from "../entity/ProductImage";
 import { CreateProductInput, UpdateProductInput } from "../types/product";
 
 export class ProductService {
   private productRepository = AppDataSource.getRepository(Product);
   private variantRepository = AppDataSource.getRepository(ProductVariant);
+  private imageRepository = AppDataSource.getRepository(ProductImage);
 
   async createProduct(brandId: string, data: CreateProductInput) {
     const existingSkus = data.variants?.length
@@ -23,7 +24,7 @@ export class ProductService {
       title: data.title,
       description: data.description || "",
       category: data.category,
-      basePrice: data.basePrice,
+      price: data.price,
       brandId,
       status: ProductStatus.ACTIVE,
     });
@@ -33,36 +34,78 @@ export class ProductService {
     if (data.variants?.length) {
       const variants = data.variants.map((variant) =>
         this.variantRepository.create({
+          productId: product.id,
           sku: variant.sku,
           size: variant.size || "",
           color: variant.color || "",
           material: variant.material || "",
           priceOverride: variant.priceOverride,
-          productId: product.id,
         }),
       );
 
       await this.variantRepository.save(variants);
     }
 
-    return this.productRepository.findOne({
-      where: { id: product.id, brandId },
-      relations: ["variants"],
-    });
+    if (data.images?.length) {
+      const images = data.images.map((image) =>
+        this.imageRepository.create({
+          productId: product.id,
+          imageUrl: image.imageUrl,
+          altText: image.altText || "",
+          sortOrder: image.sortOrder ?? 0,
+        }),
+      );
+
+      await this.imageRepository.save(images);
+    }
+
+    return this.getProductById(product.id, brandId);
   }
 
-  async getProducts(brandId: string) {
-    return this.productRepository.find({
-      where: { brandId, status: ProductStatus.ACTIVE },
-      relations: ["variants"],
-      order: { createdAt: "DESC" },
-    });
+  async getProducts(
+    brandId: string,
+    page = 1,
+    limit = 20,
+    category?: string,
+    status?: ProductStatus,
+  ) {
+    const safePage = Math.max(Number(page) || 1, 1);
+    const safeLimit = Math.min(Math.max(Number(limit) || 20, 1), 100);
+
+    const query = this.productRepository
+      .createQueryBuilder("product")
+      .leftJoinAndSelect("product.variants", "variants")
+      .leftJoinAndSelect("product.images", "images")
+      .where("product.brandId = :brandId", { brandId })
+      .orderBy("product.createdAt", "DESC")
+      .skip((safePage - 1) * safeLimit)
+      .take(safeLimit);
+
+    if (category) {
+      query.andWhere("product.category = :category", { category });
+    }
+
+    if (status) {
+      query.andWhere("product.status = :status", { status });
+    }
+
+    const [products, total] = await query.getManyAndCount();
+
+    return {
+      data: products,
+      pagination: {
+        page: safePage,
+        limit: safeLimit,
+        total,
+        totalPages: Math.ceil(total / safeLimit),
+      },
+    };
   }
 
   async getProductById(productId: string, brandId: string) {
     const product = await this.productRepository.findOne({
       where: { id: productId, brandId },
-      relations: ["variants"],
+      relations: ["variants", "images"],
     });
 
     if (!product) {

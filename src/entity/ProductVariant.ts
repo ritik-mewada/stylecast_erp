@@ -6,10 +6,13 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  Index,
 } from "typeorm";
 import { Product } from "./Product";
 
 @Entity("product_variants")
+@Index(["productId"])
+@Index(["sku"], { unique: true })
 export class ProductVariant {
   @PrimaryGeneratedColumn("uuid")
   id!: string;

@@ -8,18 +8,25 @@ export interface CreateVariantInput {
   priceOverride?: number;
 }
 
+export interface CreateImageInput {
+  imageUrl: string;
+  altText?: string;
+  sortOrder?: number;
+}
+
 export interface CreateProductInput {
   title: string;
   description?: string;
+  price: number;
   category: string;
-  basePrice: number;
   variants?: CreateVariantInput[];
+  images?: CreateImageInput[];
 }
 
 export interface UpdateProductInput {
   title?: string;
   description?: string;
+  price?: number;
   category?: string;
-  basePrice?: number;
   status?: ProductStatus;
 }

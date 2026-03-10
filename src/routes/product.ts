@@ -1,22 +1,53 @@
 import { Router } from "express";
 import { ProductController } from "../controllers/product";
 import { authenticate } from "../middleware/auth";
+import { authorizeRoles } from "../middleware/role";
+import { UserRole } from "../utils";
 
 const router = Router();
 const productController = new ProductController();
 
-router.post("/", authenticate, (req, res) =>
-  productController.create(req, res),
+router.post(
+  "/",
+  authenticate,
+  authorizeRoles(UserRole.BRAND_OWNER, UserRole.BRAND_MANAGER),
+  productController.create.bind(productController),
 );
-router.get("/", authenticate, (req, res) => productController.getAll(req, res));
-router.get("/:id", authenticate, (req, res) =>
-  productController.getOne(req, res),
+
+router.get(
+  "/",
+  authenticate,
+  authorizeRoles(
+    UserRole.BRAND_OWNER,
+    UserRole.BRAND_MANAGER,
+    UserRole.OPERATIONS_MANAGER,
+  ),
+  productController.getAll.bind(productController),
 );
-router.put("/:id", authenticate, (req, res) =>
-  productController.update(req, res),
+
+router.get(
+  "/:id",
+  authenticate,
+  authorizeRoles(
+    UserRole.BRAND_OWNER,
+    UserRole.BRAND_MANAGER,
+    UserRole.OPERATIONS_MANAGER,
+  ),
+  productController.getOne.bind(productController),
 );
-router.delete("/:id", authenticate, (req, res) =>
-  productController.archive(req, res),
+
+router.put(
+  "/:id",
+  authenticate,
+  authorizeRoles(UserRole.BRAND_OWNER, UserRole.BRAND_MANAGER),
+  productController.update.bind(productController),
+);
+
+router.delete(
+  "/:id",
+  authenticate,
+  authorizeRoles(UserRole.BRAND_OWNER, UserRole.BRAND_MANAGER),
+  productController.archive.bind(productController),
 );
 
 export default router;
