@@ -1,20 +1,21 @@
-import dotenv from "dotenv";
 import app from "./app";
-import { AppDataSource } from "./config/data-source";
+import { Config } from "./config";
+import { AppDataSource } from "./data-source";
 
-dotenv.config();
+const startServer = async () => {
+  const PORT = Config.PORT;
+  try {
+    await AppDataSource.initialize();
+    console.log("Database connection successfully.");
+    app.listen(PORT, () => console.log(`listening on PORT ${PORT}`));
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      console.error(err.message);
+      setTimeout(() => {
+        process.exit(1);
+      }, 1000);
+    }
+  }
+};
 
-const PORT = Number(process.env.PORT) || 5000;
-
-AppDataSource.initialize()
-  .then(() => {
-    console.log("Database connected");
-
-    app.listen(PORT, () => {
-      console.log(`Server running on http://localhost:${PORT}`);
-    });
-  })
-  .catch((error) => {
-    console.error("Database connection failed:", error);
-    process.exit(1);
-  });
+void startServer();
