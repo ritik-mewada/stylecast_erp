@@ -3,8 +3,10 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
+
 import authRoutes from "./routes/auth";
 import userRoutes from "./routes/user";
+import brandRoutes from "./routes/brand";
 
 const app = express();
 
@@ -15,5 +17,6 @@ app.use(express.json());
 
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
+app.use("/brands", brandRoutes);
 
 export default app;
