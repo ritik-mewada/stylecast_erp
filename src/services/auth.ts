@@ -30,6 +30,12 @@ export class AuthService {
     const brand = this.brandRepository.create({
       name: data.brandName,
       slug: data.brandSlug,
+      companyInfo: data.companyInfo || "",
+      website: data.website || "",
+      shippingOrigin: data.shippingOrigin || "",
+      brandCategory: data.brandCategory || "",
+      contactEmail: data.contactEmail || "",
+      contactPhone: data.contactPhone || "",
       isActive: true,
     });
 

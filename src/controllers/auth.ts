@@ -5,12 +5,30 @@ const authService = new AuthService();
 
 export class AuthController {
   async register(req: Request, res: Response) {
-    const { brandName, brandSlug, firstName, lastName, email, password } =
-      req.body;
+    const {
+      brandName,
+      brandSlug,
+      companyInfo,
+      website,
+      shippingOrigin,
+      brandCategory,
+      contactEmail,
+      contactPhone,
+      firstName,
+      lastName,
+      email,
+      password,
+    } = req.body;
     try {
       const result = await authService.register({
         brandName,
         brandSlug,
+        companyInfo,
+        website,
+        shippingOrigin,
+        brandCategory,
+        contactEmail,
+        contactPhone,
         firstName,
         lastName,
         email,

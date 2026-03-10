@@ -9,6 +9,12 @@ import {
 import { User } from "./User";
 import { Product } from "./Product";
 
+export enum BrandApprovalStatus {
+  PENDING = "pending",
+  APPROVED = "approved",
+  REJECTED = "rejected",
+}
+
 @Entity("brands")
 export class Brand {
   @PrimaryGeneratedColumn("uuid")
@@ -19,6 +25,31 @@ export class Brand {
 
   @Column({ unique: true })
   slug!: string;
+
+  @Column({ type: "text", nullable: true })
+  companyInfo!: string;
+
+  @Column({ nullable: true })
+  website!: string;
+
+  @Column({ nullable: true })
+  shippingOrigin!: string;
+
+  @Column({ nullable: true })
+  brandCategory!: string;
+
+  @Column({ nullable: true })
+  contactEmail!: string;
+
+  @Column({ nullable: true })
+  contactPhone!: string;
+
+  @Column({
+    type: "enum",
+    enum: BrandApprovalStatus,
+    default: BrandApprovalStatus.PENDING,
+  })
+  approvalStatus!: BrandApprovalStatus;
 
   @Column({ default: true })
   isActive!: boolean;

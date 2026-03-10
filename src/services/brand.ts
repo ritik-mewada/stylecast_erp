@@ -46,7 +46,12 @@ export class BrandService {
       }
     }
 
-    Object.assign(brand, data);
+    const {
+      approvalStatus, // deliberately excluded
+      ...safeUpdates
+    } = data;
+
+    Object.assign(brand, safeUpdates);
 
     await this.brandRepository.save(brand);
 
