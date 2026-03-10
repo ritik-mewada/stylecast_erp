@@ -8,6 +8,7 @@ import authRoutes from "./routes/auth";
 import userRoutes from "./routes/user";
 import brandRoutes from "./routes/brand";
 import productRoutes from "./routes/product";
+import inventoryRoutes from "./routes/inventory";
 
 const app = express();
 
@@ -20,5 +21,10 @@ app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
 app.use("/brands", brandRoutes);
 app.use("/products", productRoutes);
+app.use("/inventory", inventoryRoutes);
+
+app.get("/", (req, res) => {
+  res.send("Welcome to the StyleCast ERP API");
+});
 
 export default app;

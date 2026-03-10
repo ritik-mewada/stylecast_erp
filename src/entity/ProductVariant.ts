@@ -7,8 +7,10 @@ import {
   ManyToOne,
   JoinColumn,
   Index,
+  OneToOne,
 } from "typeorm";
 import { Product } from "./Product";
+import { Inventory } from "./Inventory";
 
 @Entity("product_variants")
 @Index(["productId"])
@@ -40,6 +42,9 @@ export class ProductVariant {
   })
   @JoinColumn({ name: "productId" })
   product!: Product;
+
+  @OneToOne(() => Inventory, (inventory) => inventory.variant)
+  inventory!: Inventory;
 
   @CreateDateColumn()
   createdAt!: Date;
