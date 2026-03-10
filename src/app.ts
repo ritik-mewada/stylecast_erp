@@ -3,6 +3,8 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
+import authRoutes from "./routes/auth";
+import userRoutes from "./routes/user";
 
 const app = express();
 
@@ -11,11 +13,7 @@ app.use(cors());
 app.use(morgan("dev"));
 app.use(express.json());
 
-app.get("/health", (_req, res) => {
-  res.status(200).json({
-    success: true,
-    message: "StyleCast ERP API is running",
-  });
-});
+app.use("/auth", authRoutes);
+app.use("/users", userRoutes);
 
 export default app;

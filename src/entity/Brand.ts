@@ -4,7 +4,9 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
 } from "typeorm";
+import { User } from "./User";
 
 @Entity("brands")
 export class Brand {
@@ -19,6 +21,9 @@ export class Brand {
 
   @Column({ default: true })
   isActive!: boolean;
+
+  @OneToMany(() => User, (user) => user.brand)
+  users!: User[];
 
   @CreateDateColumn()
   createdAt!: Date;
