@@ -7,6 +7,7 @@ import {
   OneToMany,
 } from "typeorm";
 import { User } from "./User";
+import { Product } from "./Product";
 
 @Entity("brands")
 export class Brand {
@@ -24,6 +25,9 @@ export class Brand {
 
   @OneToMany(() => User, (user) => user.brand)
   users!: User[];
+
+  @OneToMany(() => Product, (product) => product.brand)
+  products!: Product[];
 
   @CreateDateColumn()
   createdAt!: Date;

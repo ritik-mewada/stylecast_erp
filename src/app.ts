@@ -7,6 +7,7 @@ import morgan from "morgan";
 import authRoutes from "./routes/auth";
 import userRoutes from "./routes/user";
 import brandRoutes from "./routes/brand";
+import productRoutes from "./routes/product";
 
 const app = express();
 
@@ -18,5 +19,6 @@ app.use(express.json());
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
 app.use("/brands", brandRoutes);
+app.use("/products", productRoutes);
 
 export default app;
