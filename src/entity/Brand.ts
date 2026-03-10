@@ -8,6 +8,7 @@ import {
 } from "typeorm";
 import { User } from "./User";
 import { Product } from "./Product";
+import { Order } from "./Order";
 
 export enum BrandApprovalStatus {
   PENDING = "pending",
@@ -59,6 +60,9 @@ export class Brand {
 
   @OneToMany(() => Product, (product) => product.brand)
   products!: Product[];
+
+  @OneToMany(() => Order, (order) => order.brand)
+  orders!: Order[];
 
   @CreateDateColumn()
   createdAt!: Date;

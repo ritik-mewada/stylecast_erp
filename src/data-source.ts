@@ -6,6 +6,8 @@ import { Product } from "./entity/Product";
 import { ProductVariant } from "./entity/ProductVariant";
 import { ProductImage } from "./entity/ProductImage";
 import { Inventory } from "./entity/Inventory";
+import { Order } from "./entity/Order";
+import { OrderItem } from "./entity/OrderItem";
 
 export const AppDataSource = new DataSource({
   type: "postgres",
@@ -16,7 +18,16 @@ export const AppDataSource = new DataSource({
   database: "stylecast_erp",
   synchronize: true,
   logging: false,
-  entities: [Brand, User, Product, ProductVariant, ProductImage, Inventory],
+  entities: [
+    Brand,
+    User,
+    Product,
+    ProductVariant,
+    ProductImage,
+    Inventory,
+    Order,
+    OrderItem,
+  ],
   migrations: [],
   subscribers: [],
 });
