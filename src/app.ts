@@ -10,6 +10,7 @@ import brandRoutes from "./routes/brand";
 import productRoutes from "./routes/product";
 import inventoryRoutes from "./routes/inventory";
 import orderRoutes from "./routes/order";
+import shippingRoutes from "./routes/shipping";
 
 const app = express();
 
@@ -24,6 +25,7 @@ app.use("/brands", brandRoutes);
 app.use("/products", productRoutes);
 app.use("/inventory", inventoryRoutes);
 app.use("/orders", orderRoutes);
+app.use("/shipping", shippingRoutes);
 
 app.get("/", (req, res) => {
   res.send("Welcome to the StyleCast ERP API");

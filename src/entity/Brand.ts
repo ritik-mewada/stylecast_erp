@@ -9,6 +9,7 @@ import {
 import { User } from "./User";
 import { Product } from "./Product";
 import { Order } from "./Order";
+import { ShippingRule } from "./ShippingRule";
 
 export enum BrandApprovalStatus {
   PENDING = "pending",
@@ -63,6 +64,9 @@ export class Brand {
 
   @OneToMany(() => Order, (order) => order.brand)
   orders!: Order[];
+
+  @OneToMany(() => ShippingRule, (rule) => rule.brand)
+  shippingRules!: ShippingRule[];
 
   @CreateDateColumn()
   createdAt!: Date;

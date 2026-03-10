@@ -8,6 +8,7 @@ import { ProductImage } from "./entity/ProductImage";
 import { Inventory } from "./entity/Inventory";
 import { Order } from "./entity/Order";
 import { OrderItem } from "./entity/OrderItem";
+import { ShippingRule } from "./entity/ShippingRule";
 
 export const AppDataSource = new DataSource({
   type: "postgres",
@@ -27,6 +28,7 @@ export const AppDataSource = new DataSource({
     Inventory,
     Order,
     OrderItem,
+    ShippingRule,
   ],
   migrations: [],
   subscribers: [],
