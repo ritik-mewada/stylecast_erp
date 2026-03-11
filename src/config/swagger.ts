@@ -5,25 +5,39 @@ const swaggerDocument = {
   openapi: "3.0.3",
   info: {
     title: "StyleCast Brand Admin ERP API",
-    version: "1.0.0",
-    description:
+    version: "1.1.0",
+    description: [
       "Interactive API documentation for the StyleCast Brand Admin ERP backend.",
+      "",
+      "## Base URL",
+      "All routes are versioned under `/api/v1`.",
+      "",
+      "## Authentication",
+      "Protected routes require a JWT bearer token obtained from `POST /api/v1/auth/login`.",
+      "Click **Authorize** (🔒) above and paste your token.",
+      "",
+      "## Error Responses",
+      "All errors return a consistent JSON structure:",
+      "```json",
+      '{ "status": "error", "message": "Human-readable description" }',
+      "```",
+    ].join("\n"),
   },
   servers: [
     {
-      url: "http://localhost:8080",
+      url: "http://localhost:8080/api/v1",
       description: "Local development server",
     },
   ],
   tags: [
     { name: "System", description: "System and health endpoints" },
-    { name: "Auth", description: "Authentication endpoints" },
+    { name: "Auth", description: "Authentication — register & login" },
     { name: "Brands", description: "Brand onboarding and profile management" },
     { name: "Users", description: "Brand team user management" },
     { name: "Products", description: "Product catalog management" },
-    { name: "Inventory", description: "Inventory management" },
-    { name: "Orders", description: "Order management" },
-    { name: "Shipping", description: "Shipping configuration" },
+    { name: "Inventory", description: "Stock level management" },
+    { name: "Orders", description: "Order management and fulfilment" },
+    { name: "Shipping", description: "Shipping rule configuration" },
     { name: "Analytics", description: "Brand analytics dashboard" },
   ],
   components: {
@@ -32,9 +46,39 @@ const swaggerDocument = {
         type: "http",
         scheme: "bearer",
         bearerFormat: "JWT",
+        description: "JWT obtained from POST /auth/login",
       },
     },
     schemas: {
+      // ─── Shared ──────────────────────────────────────────────────────────
+      ErrorResponse: {
+        type: "object",
+        properties: {
+          status: { type: "string", example: "error" },
+          message: { type: "string", example: "Human-readable description" },
+        },
+      },
+      ValidationError: {
+        type: "object",
+        properties: {
+          status: { type: "string", example: "error" },
+          message: {
+            type: "string",
+            example: "email must be a valid email address; password must be at least 8 characters",
+          },
+        },
+      },
+      PaginationMeta: {
+        type: "object",
+        properties: {
+          page: { type: "integer", example: 1 },
+          limit: { type: "integer", example: 20 },
+          total: { type: "integer", example: 142 },
+          totalPages: { type: "integer", example: 8 },
+        },
+      },
+
+      // ─── Auth ─────────────────────────────────────────────────────────
       RegisterRequest: {
         type: "object",
         required: [
@@ -48,25 +92,23 @@ const swaggerDocument = {
         properties: {
           brandName: { type: "string", example: "StyleCast Demo Brand" },
           brandSlug: { type: "string", example: "stylecast-demo-brand" },
-          companyInfo: {
-            type: "string",
-            example: "Premium fashion and beauty label",
-          },
+          companyInfo: { type: "string", example: "Premium fashion and beauty label" },
           website: { type: "string", example: "https://stylecast-demo.com" },
           shippingOrigin: { type: "string", example: "Toronto, Canada" },
           brandCategory: { type: "string", example: "Fashion" },
-          contactEmail: {
-            type: "string",
-            example: "contact@stylecast-demo.com",
-          },
+          contactEmail: { type: "string", example: "contact@stylecast-demo.com" },
           contactPhone: { type: "string", example: "+1-647-555-1234" },
           firstName: { type: "string", example: "Ritik" },
           lastName: { type: "string", example: "Mewada" },
           email: { type: "string", example: "ritik@example.com" },
-          password: { type: "string", example: "Password123" },
+          password: {
+            type: "string",
+            minLength: 8,
+            example: "Password123",
+            description: "Minimum 8 characters",
+          },
         },
       },
-
       LoginRequest: {
         type: "object",
         required: ["email", "password"],
@@ -75,32 +117,31 @@ const swaggerDocument = {
           password: { type: "string", example: "Password123" },
         },
       },
-
+      AuthUserPayload: {
+        type: "object",
+        properties: {
+          id: { type: "string", format: "uuid", example: "d290f1ee-6c54-4b01-90e6-d701748f0851" },
+          firstName: { type: "string", example: "Ritik" },
+          lastName: { type: "string", example: "Mewada" },
+          email: { type: "string", example: "ritik@example.com" },
+          role: {
+            type: "string",
+            enum: ["brand_owner", "brand_manager", "operations_manager"],
+            example: "brand_owner",
+          },
+          brandId: { type: "string", format: "uuid" },
+        },
+      },
       LoginResponse: {
         type: "object",
         properties: {
           message: { type: "string", example: "Login successful" },
-          user: {
-            type: "object",
-            properties: {
-              id: { type: "string", example: "uuid-user-id" },
-              firstName: { type: "string", example: "Ritik" },
-              lastName: { type: "string", example: "Mewada" },
-              email: { type: "string", example: "ritik@example.com" },
-              role: {
-                type: "string",
-                example: "brand_owner",
-              },
-              brandId: { type: "string", example: "uuid-brand-id" },
-            },
-          },
-          token: {
-            type: "string",
-            example: "jwt_token_here",
-          },
+          user: { $ref: "#/components/schemas/AuthUserPayload" },
+          token: { type: "string", example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." },
         },
       },
 
+      // ─── Users ────────────────────────────────────────────────────────
       CreateUserRequest: {
         type: "object",
         required: ["firstName", "lastName", "email", "password", "role"],
@@ -108,7 +149,12 @@ const swaggerDocument = {
           firstName: { type: "string", example: "Alex" },
           lastName: { type: "string", example: "Manager" },
           email: { type: "string", example: "alex@example.com" },
-          password: { type: "string", example: "Password123" },
+          password: {
+            type: "string",
+            minLength: 8,
+            example: "Password123",
+            description: "Minimum 8 characters",
+          },
           role: {
             type: "string",
             enum: ["brand_owner", "brand_manager", "operations_manager"],
@@ -117,8 +163,10 @@ const swaggerDocument = {
         },
       },
 
+      // ─── Brands ───────────────────────────────────────────────────────
       UpdateBrandRequest: {
         type: "object",
+        description: "All fields are optional — send only what you want to change.",
         properties: {
           name: { type: "string", example: "StyleCast Premium Brand" },
           slug: { type: "string", example: "stylecast-premium-brand" },
@@ -131,54 +179,64 @@ const swaggerDocument = {
           isActive: { type: "boolean", example: true },
         },
       },
+      UpdateApprovalRequest: {
+        type: "object",
+        required: ["approvalStatus"],
+        properties: {
+          approvalStatus: {
+            type: "string",
+            enum: ["pending", "approved", "rejected"],
+            example: "approved",
+          },
+        },
+      },
 
+      // ─── Products ─────────────────────────────────────────────────────
+      CreateVariantRequest: {
+        type: "object",
+        required: ["sku"],
+        properties: {
+          sku: { type: "string", example: "JACKET-BLK-S" },
+          size: { type: "string", example: "S" },
+          color: { type: "string", example: "Black" },
+          material: { type: "string", example: "Leather" },
+          priceOverride: { type: "number", example: 129.99 },
+        },
+      },
+      CreateImageRequest: {
+        type: "object",
+        required: ["imageUrl"],
+        properties: {
+          imageUrl: { type: "string", format: "uri", example: "https://example.com/jacket-front.jpg" },
+          altText: { type: "string", example: "Front view" },
+          sortOrder: { type: "integer", minimum: 0, example: 0 },
+        },
+      },
       CreateProductRequest: {
         type: "object",
         required: ["title", "price", "category"],
         properties: {
           title: { type: "string", example: "Classic Black Jacket" },
-          description: {
-            type: "string",
-            example: "Premium quality black jacket",
-          },
-          price: { type: "number", example: 129.99 },
+          description: { type: "string", example: "Premium-quality black jacket" },
+          price: { type: "number", minimum: 0.01, example: 129.99 },
           category: { type: "string", example: "Outerwear" },
           variants: {
             type: "array",
-            items: {
-              type: "object",
-              properties: {
-                sku: { type: "string", example: "JACKET-BLK-S" },
-                size: { type: "string", example: "S" },
-                color: { type: "string", example: "Black" },
-                material: { type: "string", example: "Leather" },
-                priceOverride: { type: "number", example: 129.99 },
-              },
-            },
+            items: { $ref: "#/components/schemas/CreateVariantRequest" },
           },
           images: {
             type: "array",
-            items: {
-              type: "object",
-              properties: {
-                imageUrl: {
-                  type: "string",
-                  example: "https://example.com/jacket-front.jpg",
-                },
-                altText: { type: "string", example: "Front view" },
-                sortOrder: { type: "integer", example: 1 },
-              },
-            },
+            items: { $ref: "#/components/schemas/CreateImageRequest" },
           },
         },
       },
-
       UpdateProductRequest: {
         type: "object",
+        description: "All fields optional — send only what you want to change.",
         properties: {
           title: { type: "string", example: "Classic Black Leather Jacket" },
           description: { type: "string", example: "Updated description" },
-          price: { type: "number", example: 139.99 },
+          price: { type: "number", minimum: 0.01, example: 139.99 },
           category: { type: "string", example: "Premium Outerwear" },
           status: {
             type: "string",
@@ -188,54 +246,53 @@ const swaggerDocument = {
         },
       },
 
+      // ─── Inventory ────────────────────────────────────────────────────
       UpdateInventoryRequest: {
         type: "object",
+        description: "Both fields optional — send only what you want to change.",
         properties: {
-          quantity: { type: "integer", example: 40 },
-          lowStockThreshold: { type: "integer", example: 5 },
+          quantity: { type: "integer", minimum: 0, example: 40 },
+          lowStockThreshold: { type: "integer", minimum: 0, example: 5 },
         },
       },
 
+      // ─── Orders ───────────────────────────────────────────────────────
       UpdateOrderStatusRequest: {
         type: "object",
         required: ["orderStatus"],
         properties: {
           orderStatus: {
             type: "string",
-            enum: [
-              "pending",
-              "confirmed",
-              "shipped",
-              "delivered",
-              "cancelled",
-              "refunded",
-            ],
+            enum: ["pending", "confirmed", "shipped", "delivered", "cancelled", "refunded"],
             example: "confirmed",
+            description: "Must follow the valid state machine transitions.",
           },
         },
       },
 
+      // ─── Shipping ─────────────────────────────────────────────────────
       CreateShippingRuleRequest: {
         type: "object",
         required: ["regionName", "shippingFee", "deliveryEstimate"],
         properties: {
           regionName: { type: "string", example: "North America" },
-          shippingFee: { type: "number", example: 10 },
-          freeShippingThreshold: { type: "number", example: 100 },
+          shippingFee: { type: "number", minimum: 0, example: 10 },
+          freeShippingThreshold: { type: "number", minimum: 0, example: 100 },
           deliveryEstimate: { type: "string", example: "5-7 days" },
         },
       },
-
       UpdateShippingRuleRequest: {
         type: "object",
+        description: "All fields optional.",
         properties: {
           regionName: { type: "string", example: "Europe" },
-          shippingFee: { type: "number", example: 15 },
-          freeShippingThreshold: { type: "number", example: 120 },
+          shippingFee: { type: "number", minimum: 0, example: 15 },
+          freeShippingThreshold: { type: "number", minimum: 0, example: 120 },
           deliveryEstimate: { type: "string", example: "7-10 days" },
         },
       },
 
+      // ─── Analytics ────────────────────────────────────────────────────
       AnalyticsOverviewResponse: {
         type: "object",
         properties: {
@@ -246,17 +303,15 @@ const swaggerDocument = {
           totalSales: { type: "number", example: 3480 },
         },
       },
-
       TopProductResponse: {
         type: "object",
         properties: {
-          productId: { type: "string", example: "uuid-1" },
+          productId: { type: "string", format: "uuid" },
           title: { type: "string", example: "Classic Black Jacket" },
           unitsSold: { type: "integer", example: 18 },
           revenue: { type: "number", example: 2160 },
         },
       },
-
       OrderStatusSummaryResponse: {
         type: "object",
         properties: {
@@ -264,7 +319,6 @@ const swaggerDocument = {
           count: { type: "integer", example: 3 },
         },
       },
-
       InventoryTurnoverResponse: {
         type: "object",
         properties: {
@@ -272,14 +326,9 @@ const swaggerDocument = {
           unitsSold: { type: "integer", example: 120 },
           currentInventoryUnits: { type: "integer", example: 80 },
           turnoverRate: { type: "number", example: 1.5 },
-          note: {
-            type: "string",
-            example:
-              "Inventory turnover is approximated as units sold divided by current inventory units for the selected period.",
-          },
+          note: { type: "string" },
         },
       },
-
       ConversionRateResponse: {
         type: "object",
         properties: {
@@ -288,33 +337,89 @@ const swaggerDocument = {
           ordersPlaced: { type: "integer", example: 45 },
           conversionRate: { type: "number", example: 3.0 },
           unit: { type: "string", example: "%" },
-          note: {
-            type: "string",
-            example:
-              "Conversion rate is based on marketplace traffic data synced into traffic_metrics.",
+          note: { type: "string" },
+        },
+      },
+    },
+
+    // ─── Reusable responses ─────────────────────────────────────────────
+    responses: {
+      Unauthorized: {
+        description: "Missing or invalid JWT token",
+        content: {
+          "application/json": {
+            schema: { $ref: "#/components/schemas/ErrorResponse" },
+            example: { status: "error", message: "Authorization token required" },
+          },
+        },
+      },
+      Forbidden: {
+        description: "Authenticated user does not have the required role",
+        content: {
+          "application/json": {
+            schema: { $ref: "#/components/schemas/ErrorResponse" },
+            example: { status: "error", message: "Forbidden: insufficient permissions" },
+          },
+        },
+      },
+      NotFound: {
+        description: "Resource not found",
+        content: {
+          "application/json": {
+            schema: { $ref: "#/components/schemas/ErrorResponse" },
+            example: { status: "error", message: "Resource not found" },
+          },
+        },
+      },
+      ValidationError: {
+        description: "Request body failed validation",
+        content: {
+          "application/json": {
+            schema: { $ref: "#/components/schemas/ValidationError" },
+          },
+        },
+      },
+      Conflict: {
+        description: "Resource already exists (duplicate field)",
+        content: {
+          "application/json": {
+            schema: { $ref: "#/components/schemas/ErrorResponse" },
+            example: { status: "error", message: "A user with this email already exists" },
           },
         },
       },
     },
   },
+
   security: [{ bearerAuth: [] }],
+
   paths: {
+    // ─── System ──────────────────────────────────────────────────────────
     "/": {
       get: {
         tags: ["System"],
-        summary: "Test API",
+        summary: "Health check",
+        security: [],
         responses: {
           "200": {
             description: "API is running",
+            content: {
+              "application/json": {
+                example: { status: "ok", message: "StyleCast ERP API" },
+              },
+            },
           },
         },
       },
     },
 
+    // ─── Auth ─────────────────────────────────────────────────────────────
     "/auth/register": {
       post: {
         tags: ["Auth"],
-        summary: "Register brand and initial owner",
+        summary: "Register brand and initial owner account",
+        description: "Creates a brand and a `brand_owner` user in a single operation.",
+        security: [],
         requestBody: {
           required: true,
           content: {
@@ -324,8 +429,9 @@ const swaggerDocument = {
           },
         },
         responses: {
-          "201": { description: "Brand registered successfully" },
-          "400": { description: "Validation or registration error" },
+          "201": { description: "Brand and owner registered successfully" },
+          "400": { $ref: "#/components/responses/ValidationError" },
+          "409": { $ref: "#/components/responses/Conflict" },
         },
       },
     },
@@ -333,7 +439,9 @@ const swaggerDocument = {
     "/auth/login": {
       post: {
         tags: ["Auth"],
-        summary: "Login user",
+        summary: "Authenticate and receive JWT",
+        description: "Returns a JWT to be sent as `Authorization: Bearer <token>` on subsequent requests.",
+        security: [],
         requestBody: {
           required: true,
           content: {
@@ -351,11 +459,21 @@ const swaggerDocument = {
               },
             },
           },
-          "400": { description: "Invalid credentials" },
+          "400": { $ref: "#/components/responses/ValidationError" },
+          "401": {
+            description: "Invalid email or password",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ErrorResponse" },
+                example: { status: "error", message: "Invalid email or password" },
+              },
+            },
+          },
         },
       },
     },
 
+    // ─── Brands ───────────────────────────────────────────────────────────
     "/brands/me": {
       get: {
         tags: ["Brands"],
@@ -363,7 +481,8 @@ const swaggerDocument = {
         security: [{ bearerAuth: [] }],
         responses: {
           "200": { description: "Brand profile fetched successfully" },
-          "401": { description: "Unauthorized" },
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "404": { $ref: "#/components/responses/NotFound" },
         },
       },
     },
@@ -372,6 +491,7 @@ const swaggerDocument = {
       put: {
         tags: ["Brands"],
         summary: "Update brand profile",
+        description: "Roles: `brand_owner`, `brand_manager`. The `approvalStatus` field is ignored here — use `PATCH /brands/{id}/approval` instead.",
         security: [{ bearerAuth: [] }],
         requestBody: {
           required: true,
@@ -383,9 +503,11 @@ const swaggerDocument = {
         },
         responses: {
           "200": { description: "Brand profile updated successfully" },
-          "400": { description: "Validation error" },
-          "401": { description: "Unauthorized" },
-          "403": { description: "Forbidden" },
+          "400": { $ref: "#/components/responses/ValidationError" },
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "403": { $ref: "#/components/responses/Forbidden" },
+          "404": { $ref: "#/components/responses/NotFound" },
+          "409": { $ref: "#/components/responses/Conflict" },
         },
       },
     },
@@ -394,60 +516,52 @@ const swaggerDocument = {
       patch: {
         tags: ["Brands"],
         summary: "Update brand approval status",
-        description:
-          "Allows a brand owner to approve or reject a brand's onboarding application. Valid statuses are: pending, approved, rejected.",
+        description: "Roles: `brand_owner` only.",
         security: [{ bearerAuth: [] }],
         parameters: [
           {
             in: "path",
             name: "id",
             required: true,
-            schema: { type: "string" },
-            description: "ID of the brand to update",
+            schema: { type: "string", format: "uuid" },
+            description: "Brand ID",
           },
         ],
         requestBody: {
           required: true,
           content: {
             "application/json": {
-              schema: {
-                type: "object",
-                required: ["approvalStatus"],
-                properties: {
-                  approvalStatus: {
-                    type: "string",
-                    enum: ["pending", "approved", "rejected"],
-                    example: "approved",
-                  },
-                },
-              },
+              schema: { $ref: "#/components/schemas/UpdateApprovalRequest" },
             },
           },
         },
         responses: {
           "200": { description: "Brand approval status updated successfully" },
-          "400": { description: "Invalid approval status or brand not found" },
-          "401": { description: "Unauthorized" },
-          "403": { description: "Forbidden — Brand Owner role required" },
+          "400": { $ref: "#/components/responses/ValidationError" },
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "403": { $ref: "#/components/responses/Forbidden" },
+          "404": { $ref: "#/components/responses/NotFound" },
         },
       },
     },
 
-
+    // ─── Users ────────────────────────────────────────────────────────────
     "/users": {
       get: {
         tags: ["Users"],
-        summary: "List brand users",
+        summary: "List brand team members",
+        description: "Roles: `brand_owner`, `brand_manager`.",
         security: [{ bearerAuth: [] }],
         responses: {
           "200": { description: "Users fetched successfully" },
-          "401": { description: "Unauthorized" },
-          "403": { description: "Forbidden" },
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "403": { $ref: "#/components/responses/Forbidden" },
         },
       },
       post: {
         tags: ["Users"],
-        summary: "Create brand user",
+        summary: "Invite a new brand team member",
+        description: "Roles: `brand_owner` only.",
         security: [{ bearerAuth: [] }],
         requestBody: {
           required: true,
@@ -459,51 +573,54 @@ const swaggerDocument = {
         },
         responses: {
           "201": { description: "User created successfully" },
-          "400": { description: "Validation error" },
-          "401": { description: "Unauthorized" },
-          "403": { description: "Forbidden" },
+          "400": { $ref: "#/components/responses/ValidationError" },
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "403": { $ref: "#/components/responses/Forbidden" },
+          "409": { $ref: "#/components/responses/Conflict" },
         },
       },
     },
 
+    // ─── Products ─────────────────────────────────────────────────────────
     "/products": {
       get: {
         tags: ["Products"],
-        summary: "List products",
+        summary: "List products (paginated)",
+        description: "Roles: all authenticated users.",
         security: [{ bearerAuth: [] }],
         parameters: [
-          {
-            in: "query",
-            name: "page",
-            schema: { type: "integer", example: 1 },
-          },
-          {
-            in: "query",
-            name: "limit",
-            schema: { type: "integer", example: 20 },
-          },
-          {
-            in: "query",
-            name: "category",
-            schema: { type: "string", example: "Outerwear" },
-          },
+          { in: "query", name: "page", schema: { type: "integer", default: 1 } },
+          { in: "query", name: "limit", schema: { type: "integer", default: 20, maximum: 100 } },
+          { in: "query", name: "category", schema: { type: "string", example: "Outerwear" } },
           {
             in: "query",
             name: "status",
-            schema: {
-              type: "string",
-              enum: ["active", "archived"],
-              example: "active",
-            },
+            schema: { type: "string", enum: ["active", "archived"], example: "active" },
           },
         ],
         responses: {
-          "200": { description: "Products fetched successfully" },
+          "200": {
+            description: "Products returned with pagination metadata",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    data: { type: "array", items: { type: "object" } },
+                    pagination: { $ref: "#/components/schemas/PaginationMeta" },
+                  },
+                },
+              },
+            },
+          },
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "403": { $ref: "#/components/responses/Forbidden" },
         },
       },
       post: {
         tags: ["Products"],
         summary: "Create product with variants and images",
+        description: "Roles: `brand_owner`, `brand_manager`. An inventory record (quantity=0) is automatically created for each variant.",
         security: [{ bearerAuth: [] }],
         requestBody: {
           required: true,
@@ -515,7 +632,18 @@ const swaggerDocument = {
         },
         responses: {
           "201": { description: "Product created successfully" },
-          "400": { description: "Validation error" },
+          "400": { $ref: "#/components/responses/ValidationError" },
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "403": { $ref: "#/components/responses/Forbidden" },
+          "409": {
+            description: "One or more SKUs already exist",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ErrorResponse" },
+                example: { status: "error", message: "One or more SKUs already exist: JACKET-BLK-S" },
+              },
+            },
+          },
         },
       },
     },
@@ -523,32 +651,24 @@ const swaggerDocument = {
     "/products/{id}": {
       get: {
         tags: ["Products"],
-        summary: "Get product by id",
+        summary: "Get product by ID",
         security: [{ bearerAuth: [] }],
         parameters: [
-          {
-            in: "path",
-            name: "id",
-            required: true,
-            schema: { type: "string" },
-          },
+          { in: "path", name: "id", required: true, schema: { type: "string", format: "uuid" } },
         ],
         responses: {
           "200": { description: "Product fetched successfully" },
-          "404": { description: "Product not found" },
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "404": { $ref: "#/components/responses/NotFound" },
         },
       },
       put: {
         tags: ["Products"],
         summary: "Update product",
+        description: "Roles: `brand_owner`, `brand_manager`.",
         security: [{ bearerAuth: [] }],
         parameters: [
-          {
-            in: "path",
-            name: "id",
-            required: true,
-            schema: { type: "string" },
-          },
+          { in: "path", name: "id", required: true, schema: { type: "string", format: "uuid" } },
         ],
         requestBody: {
           required: true,
@@ -560,56 +680,58 @@ const swaggerDocument = {
         },
         responses: {
           "200": { description: "Product updated successfully" },
-          "400": { description: "Validation error" },
+          "400": { $ref: "#/components/responses/ValidationError" },
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "403": { $ref: "#/components/responses/Forbidden" },
+          "404": { $ref: "#/components/responses/NotFound" },
         },
       },
       delete: {
         tags: ["Products"],
-        summary: "Archive product",
+        summary: "Archive product (soft delete)",
+        description: "Roles: `brand_owner`, `brand_manager`. Products are never hard-deleted; archiving sets status to `archived`.",
         security: [{ bearerAuth: [] }],
         parameters: [
-          {
-            in: "path",
-            name: "id",
-            required: true,
-            schema: { type: "string" },
-          },
+          { in: "path", name: "id", required: true, schema: { type: "string", format: "uuid" } },
         ],
         responses: {
-          "200": { description: "Product archived successfully" },
+          "200": {
+            description: "Product archived successfully",
+            content: {
+              "application/json": {
+                example: { message: "Product archived successfully" },
+              },
+            },
+          },
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "403": { $ref: "#/components/responses/Forbidden" },
+          "404": { $ref: "#/components/responses/NotFound" },
         },
       },
     },
 
+    // ─── Inventory ────────────────────────────────────────────────────────
     "/inventory/variant/{variantId}": {
       get: {
         tags: ["Inventory"],
-        summary: "Get inventory for a variant",
+        summary: "Get stock level for a product variant",
         security: [{ bearerAuth: [] }],
         parameters: [
-          {
-            in: "path",
-            name: "variantId",
-            required: true,
-            schema: { type: "string" },
-          },
+          { in: "path", name: "variantId", required: true, schema: { type: "string", format: "uuid" } },
         ],
         responses: {
           "200": { description: "Inventory fetched successfully" },
-          "404": { description: "Inventory not found" },
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "404": { $ref: "#/components/responses/NotFound" },
         },
       },
       put: {
         tags: ["Inventory"],
-        summary: "Update inventory for a variant",
+        summary: "Update stock level for a product variant",
+        description: "Roles: `brand_owner`, `brand_manager`. Upserts — creates an inventory record if one does not yet exist.",
         security: [{ bearerAuth: [] }],
         parameters: [
-          {
-            in: "path",
-            name: "variantId",
-            required: true,
-            schema: { type: "string" },
-          },
+          { in: "path", name: "variantId", required: true, schema: { type: "string", format: "uuid" } },
         ],
         requestBody: {
           required: true,
@@ -621,7 +743,9 @@ const swaggerDocument = {
         },
         responses: {
           "200": { description: "Inventory updated successfully" },
-          "400": { description: "Validation error" },
+          "400": { $ref: "#/components/responses/ValidationError" },
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "403": { $ref: "#/components/responses/Forbidden" },
         },
       },
     },
@@ -629,51 +753,54 @@ const swaggerDocument = {
     "/inventory/low-stock": {
       get: {
         tags: ["Inventory"],
-        summary: "Get low stock variants",
+        summary: "Get all low-stock variants",
+        description: "Returns variants where `quantity <= lowStockThreshold`. Roles: all authenticated users.",
         security: [{ bearerAuth: [] }],
         responses: {
-          "200": { description: "Low stock items fetched successfully" },
+          "200": { description: "Low-stock items returned" },
+          "401": { $ref: "#/components/responses/Unauthorized" },
         },
       },
     },
 
+    // ─── Orders ───────────────────────────────────────────────────────────
     "/orders": {
       get: {
         tags: ["Orders"],
-        summary: "List incoming orders",
+        summary: "List orders (paginated)",
         description:
-          "Orders are created by the StyleCast customer marketplace. The Brand Admin ERP allows brands to view and manage them.",
+          "Orders are created by the StyleCast marketplace. Brands view and manage them here. " +
+          "Roles: all authenticated users.",
         security: [{ bearerAuth: [] }],
         parameters: [
-          {
-            in: "query",
-            name: "page",
-            schema: { type: "integer", example: 1 },
-          },
-          {
-            in: "query",
-            name: "limit",
-            schema: { type: "integer", example: 20 },
-          },
+          { in: "query", name: "page", schema: { type: "integer", default: 1 } },
+          { in: "query", name: "limit", schema: { type: "integer", default: 20, maximum: 100 } },
           {
             in: "query",
             name: "status",
             schema: {
               type: "string",
-              enum: [
-                "pending",
-                "confirmed",
-                "shipped",
-                "delivered",
-                "cancelled",
-                "refunded",
-              ],
-              example: "pending",
+              enum: ["pending", "confirmed", "shipped", "delivered", "cancelled", "refunded"],
             },
           },
         ],
         responses: {
-          "200": { description: "Orders fetched successfully" },
+          "200": {
+            description: "Orders returned with pagination metadata",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    data: { type: "array", items: { type: "object" } },
+                    pagination: { $ref: "#/components/schemas/PaginationMeta" },
+                  },
+                },
+              },
+            },
+          },
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "403": { $ref: "#/components/responses/Forbidden" },
         },
       },
     },
@@ -681,21 +808,17 @@ const swaggerDocument = {
     "/orders/{id}": {
       get: {
         tags: ["Orders"],
-        summary: "Get order by id",
-        description:
-          "Returns order details for an order created by the StyleCast marketplace system.",
+        summary: "Get order by ID",
+        description: "Roles: all authenticated users.",
         security: [{ bearerAuth: [] }],
         parameters: [
-          {
-            in: "path",
-            name: "id",
-            required: true,
-            schema: { type: "string" },
-          },
+          { in: "path", name: "id", required: true, schema: { type: "string", format: "uuid" } },
         ],
         responses: {
           "200": { description: "Order fetched successfully" },
-          "404": { description: "Order not found" },
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "403": { $ref: "#/components/responses/Forbidden" },
+          "404": { $ref: "#/components/responses/NotFound" },
         },
       },
     },
@@ -703,31 +826,45 @@ const swaggerDocument = {
     "/orders/{id}/status": {
       patch: {
         tags: ["Orders"],
-        summary: "Update order status",
-        description:
-          "Updates the fulfillment status of an order received from the StyleCast marketplace.",
+        summary: "Advance order status",
+        description: [
+          "Roles: `brand_owner`, `operations_manager`.",
+          "",
+          "**Valid state transitions:**",
+          "| From | To |",
+          "|---|---|",
+          "| `pending` | `confirmed`, `cancelled` |",
+          "| `confirmed` | `shipped`, `cancelled` |",
+          "| `shipped` | `delivered` |",
+          "| `delivered`, `cancelled`, `refunded` | *(terminal — no transitions)* |",
+        ].join("\n"),
         security: [{ bearerAuth: [] }],
         parameters: [
-          {
-            in: "path",
-            name: "id",
-            required: true,
-            schema: { type: "string" },
-          },
+          { in: "path", name: "id", required: true, schema: { type: "string", format: "uuid" } },
         ],
         requestBody: {
           required: true,
           content: {
             "application/json": {
-              schema: {
-                $ref: "#/components/schemas/UpdateOrderStatusRequest",
-              },
+              schema: { $ref: "#/components/schemas/UpdateOrderStatusRequest" },
             },
           },
         },
         responses: {
           "200": { description: "Order status updated successfully" },
-          "400": { description: "Invalid transition" },
+          "400": { $ref: "#/components/responses/ValidationError" },
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "403": { $ref: "#/components/responses/Forbidden" },
+          "404": { $ref: "#/components/responses/NotFound" },
+          "422": {
+            description: "Invalid status transition",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ErrorResponse" },
+                example: { status: "error", message: "Invalid status transition: pending → delivered" },
+              },
+            },
+          },
         },
       },
     },
@@ -736,49 +873,59 @@ const swaggerDocument = {
       patch: {
         tags: ["Orders"],
         summary: "Process refund",
-        description:
-          "Processes a refund for an order created by the StyleCast marketplace.",
+        description: "Roles: `brand_owner`, `operations_manager`. Sets both `orderStatus` and `paymentStatus` to `refunded`.",
         security: [{ bearerAuth: [] }],
         parameters: [
-          {
-            in: "path",
-            name: "id",
-            required: true,
-            schema: { type: "string" },
-          },
+          { in: "path", name: "id", required: true, schema: { type: "string", format: "uuid" } },
         ],
         responses: {
           "200": { description: "Refund processed successfully" },
-          "400": { description: "Refund error" },
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "403": { $ref: "#/components/responses/Forbidden" },
+          "404": { $ref: "#/components/responses/NotFound" },
+          "409": {
+            description: "Order has already been refunded",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ErrorResponse" },
+                example: { status: "error", message: "This order has already been refunded" },
+              },
+            },
+          },
         },
       },
     },
 
+    // ─── Shipping ─────────────────────────────────────────────────────────
     "/shipping": {
       get: {
         tags: ["Shipping"],
         summary: "List shipping rules",
+        description: "Roles: all authenticated users.",
         security: [{ bearerAuth: [] }],
         responses: {
           "200": { description: "Shipping rules fetched successfully" },
+          "401": { $ref: "#/components/responses/Unauthorized" },
         },
       },
       post: {
         tags: ["Shipping"],
         summary: "Create shipping rule",
+        description: "Roles: `brand_owner`, `brand_manager`.",
         security: [{ bearerAuth: [] }],
         requestBody: {
           required: true,
           content: {
             "application/json": {
-              schema: {
-                $ref: "#/components/schemas/CreateShippingRuleRequest",
-              },
+              schema: { $ref: "#/components/schemas/CreateShippingRuleRequest" },
             },
           },
         },
         responses: {
           "201": { description: "Shipping rule created successfully" },
+          "400": { $ref: "#/components/responses/ValidationError" },
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "403": { $ref: "#/components/responses/Forbidden" },
         },
       },
     },
@@ -787,79 +934,77 @@ const swaggerDocument = {
       put: {
         tags: ["Shipping"],
         summary: "Update shipping rule",
+        description: "Roles: `brand_owner`, `brand_manager`.",
         security: [{ bearerAuth: [] }],
         parameters: [
-          {
-            in: "path",
-            name: "id",
-            required: true,
-            schema: { type: "string" },
-          },
+          { in: "path", name: "id", required: true, schema: { type: "string", format: "uuid" } },
         ],
         requestBody: {
           required: true,
           content: {
             "application/json": {
-              schema: {
-                $ref: "#/components/schemas/UpdateShippingRuleRequest",
-              },
+              schema: { $ref: "#/components/schemas/UpdateShippingRuleRequest" },
             },
           },
         },
         responses: {
           "200": { description: "Shipping rule updated successfully" },
+          "400": { $ref: "#/components/responses/ValidationError" },
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "403": { $ref: "#/components/responses/Forbidden" },
+          "404": { $ref: "#/components/responses/NotFound" },
         },
       },
       delete: {
         tags: ["Shipping"],
         summary: "Delete shipping rule",
+        description: "Roles: `brand_owner` only.",
         security: [{ bearerAuth: [] }],
         parameters: [
-          {
-            in: "path",
-            name: "id",
-            required: true,
-            schema: { type: "string" },
-          },
+          { in: "path", name: "id", required: true, schema: { type: "string", format: "uuid" } },
         ],
         responses: {
-          "200": { description: "Shipping rule deleted successfully" },
+          "200": {
+            description: "Shipping rule deleted successfully",
+            content: {
+              "application/json": {
+                example: { message: "Shipping rule deleted" },
+              },
+            },
+          },
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "403": { $ref: "#/components/responses/Forbidden" },
+          "404": { $ref: "#/components/responses/NotFound" },
         },
       },
     },
 
+    // ─── Analytics ────────────────────────────────────────────────────────
     "/analytics/overview": {
       get: {
         tags: ["Analytics"],
-        summary: "Get analytics overview",
-        description:
-          "Returns high-level brand analytics including total orders, total sales, total products, and total active products. Supports time ranges: daily, weekly, monthly.",
+        summary: "Dashboard overview (orders, sales, products)",
+        description: "Roles: all authenticated users. Supports time ranges: `daily`, `weekly`, `monthly`. Omit `range` for all-time.",
         security: [{ bearerAuth: [] }],
         parameters: [
           {
             in: "query",
             name: "range",
-            schema: {
-              type: "string",
-              enum: ["daily", "weekly", "monthly"],
-              example: "monthly",
-            },
-            description: "Optional analytics time range",
+            schema: { type: "string", enum: ["daily", "weekly", "monthly"] },
+            description: "Optional time range filter",
           },
         ],
         responses: {
           "200": {
-            description: "Overview analytics fetched successfully",
+            description: "Overview fetched successfully",
             content: {
               "application/json": {
-                schema: {
-                  $ref: "#/components/schemas/AnalyticsOverviewResponse",
-                },
+                schema: { $ref: "#/components/schemas/AnalyticsOverviewResponse" },
               },
             },
           },
-          "401": { description: "Unauthorized" },
-          "403": { description: "Forbidden" },
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "403": { $ref: "#/components/responses/Forbidden" },
         },
       },
     },
@@ -867,26 +1012,20 @@ const swaggerDocument = {
     "/analytics/top-products": {
       get: {
         tags: ["Analytics"],
-        summary: "Get top-selling products",
-        description:
-          "Returns top-selling products for the authenticated brand based on total units sold and revenue. Supports time ranges: daily, weekly, monthly.",
+        summary: "Top-selling products by units and revenue",
+        description: "Roles: all authenticated users.",
         security: [{ bearerAuth: [] }],
         parameters: [
           {
             in: "query",
             name: "limit",
-            schema: { type: "integer", example: 5 },
-            description: "Maximum number of products to return",
+            schema: { type: "integer", default: 5, maximum: 20 },
+            description: "Max products to return (capped at 20)",
           },
           {
             in: "query",
             name: "range",
-            schema: {
-              type: "string",
-              enum: ["daily", "weekly", "monthly"],
-              example: "weekly",
-            },
-            description: "Optional analytics time range",
+            schema: { type: "string", enum: ["daily", "weekly", "monthly"] },
           },
         ],
         responses: {
@@ -901,8 +1040,8 @@ const swaggerDocument = {
               },
             },
           },
-          "401": { description: "Unauthorized" },
-          "403": { description: "Forbidden" },
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "403": { $ref: "#/components/responses/Forbidden" },
         },
       },
     },
@@ -910,16 +1049,13 @@ const swaggerDocument = {
     "/analytics/low-stock": {
       get: {
         tags: ["Analytics"],
-        summary: "Get low stock summary",
-        description:
-          "Returns inventory items where quantity is less than or equal to the configured low stock threshold.",
+        summary: "Low-stock inventory summary",
+        description: "Roles: all authenticated users. Returns items where quantity ≤ threshold.",
         security: [{ bearerAuth: [] }],
         responses: {
-          "200": {
-            description: "Low stock analytics fetched successfully",
-          },
-          "401": { description: "Unauthorized" },
-          "403": { description: "Forbidden" },
+          "200": { description: "Low-stock summary fetched successfully" },
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "403": { $ref: "#/components/responses/Forbidden" },
         },
       },
     },
@@ -927,38 +1063,30 @@ const swaggerDocument = {
     "/analytics/order-status": {
       get: {
         tags: ["Analytics"],
-        summary: "Get order status summary",
-        description:
-          "Returns counts of orders grouped by order status for the authenticated brand. Supports time ranges: daily, weekly, monthly.",
+        summary: "Order counts grouped by status",
+        description: "Roles: all authenticated users.",
         security: [{ bearerAuth: [] }],
         parameters: [
           {
             in: "query",
             name: "range",
-            schema: {
-              type: "string",
-              enum: ["daily", "weekly", "monthly"],
-              example: "daily",
-            },
-            description: "Optional analytics time range",
+            schema: { type: "string", enum: ["daily", "weekly", "monthly"] },
           },
         ],
         responses: {
           "200": {
-            description: "Order status analytics fetched successfully",
+            description: "Order status summary fetched successfully",
             content: {
               "application/json": {
                 schema: {
                   type: "array",
-                  items: {
-                    $ref: "#/components/schemas/OrderStatusSummaryResponse",
-                  },
+                  items: { $ref: "#/components/schemas/OrderStatusSummaryResponse" },
                 },
               },
             },
           },
-          "401": { description: "Unauthorized" },
-          "403": { description: "Forbidden" },
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "403": { $ref: "#/components/responses/Forbidden" },
         },
       },
     },
@@ -966,20 +1094,14 @@ const swaggerDocument = {
     "/analytics/inventory-turnover": {
       get: {
         tags: ["Analytics"],
-        summary: "Get inventory turnover",
-        description:
-          "Returns an inventory turnover approximation for the authenticated brand. Supports time ranges: daily, weekly, monthly.",
+        summary: "Inventory turnover rate",
+        description: "Roles: all authenticated users. Approximated as units sold / current inventory units.",
         security: [{ bearerAuth: [] }],
         parameters: [
           {
             in: "query",
             name: "range",
-            schema: {
-              type: "string",
-              enum: ["daily", "weekly", "monthly"],
-              example: "monthly",
-            },
-            description: "Optional analytics time range",
+            schema: { type: "string", enum: ["daily", "weekly", "monthly"] },
           },
         ],
         responses: {
@@ -987,14 +1109,12 @@ const swaggerDocument = {
             description: "Inventory turnover fetched successfully",
             content: {
               "application/json": {
-                schema: {
-                  $ref: "#/components/schemas/InventoryTurnoverResponse",
-                },
+                schema: { $ref: "#/components/schemas/InventoryTurnoverResponse" },
               },
             },
           },
-          "401": { description: "Unauthorized" },
-          "403": { description: "Forbidden" },
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "403": { $ref: "#/components/responses/Forbidden" },
         },
       },
     },
@@ -1002,20 +1122,17 @@ const swaggerDocument = {
     "/analytics/conversion-rate": {
       get: {
         tags: ["Analytics"],
-        summary: "Get conversion rate",
+        summary: "Conversion rate from marketplace traffic data",
         description:
-          "Returns conversion rate for the authenticated brand using marketplace traffic data synced into traffic_metrics. Supports time ranges: daily, weekly, monthly. If no traffic data exists, zero values will be returned.",
+          "Roles: all authenticated users. " +
+          "Calculated from `traffic_metrics` records synced from the StyleCast marketplace. " +
+          "Returns zero values if no traffic data has been synced yet.",
         security: [{ bearerAuth: [] }],
         parameters: [
           {
             in: "query",
             name: "range",
-            schema: {
-              type: "string",
-              enum: ["daily", "weekly", "monthly"],
-              example: "weekly",
-            },
-            description: "Optional analytics time range",
+            schema: { type: "string", enum: ["daily", "weekly", "monthly"] },
           },
         ],
         responses: {
@@ -1023,14 +1140,12 @@ const swaggerDocument = {
             description: "Conversion rate fetched successfully",
             content: {
               "application/json": {
-                schema: {
-                  $ref: "#/components/schemas/ConversionRateResponse",
-                },
+                schema: { $ref: "#/components/schemas/ConversionRateResponse" },
               },
             },
           },
-          "401": { description: "Unauthorized" },
-          "403": { description: "Forbidden" },
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "403": { $ref: "#/components/responses/Forbidden" },
         },
       },
     },
@@ -1044,12 +1159,10 @@ export const setupSwagger = (app: Express) => {
     swaggerUi.setup(swaggerDocument, {
       swaggerOptions: {
         persistAuthorization: true,
-
         responseInterceptor: (response: any) => {
           try {
             if (response.url && response.url.includes("/auth/login")) {
               const data = JSON.parse(response.text);
-
               if (data?.token) {
                 window.localStorage.setItem("stylecast_jwt_token", data.token);
               }
@@ -1057,17 +1170,13 @@ export const setupSwagger = (app: Express) => {
           } catch (error) {
             console.error("Swagger login response parse error:", error);
           }
-
           return response;
         },
-
         requestInterceptor: (req: any) => {
           const token = window.localStorage.getItem("stylecast_jwt_token");
-
           if (token) {
             req.headers["Authorization"] = `Bearer ${token}`;
           }
-
           return req;
         },
       },

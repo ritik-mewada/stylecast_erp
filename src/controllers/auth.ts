@@ -1,60 +1,24 @@
-// Handles registration and login. When someone signs up, we create both a brand
-// and a user in one shot. Login just checks credentials and hands back a token.
-// The actual heavy lifting is done in the AuthService — this file just deals with
-// the request/response layer.
-
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import { AuthService } from "../services/auth";
 
 const authService = new AuthService();
 
 export class AuthController {
-  async register(req: Request, res: Response) {
-    const {
-      brandName,
-      brandSlug,
-      companyInfo,
-      website,
-      shippingOrigin,
-      brandCategory,
-      contactEmail,
-      contactPhone,
-      firstName,
-      lastName,
-      email,
-      password,
-    } = req.body;
+  async register(req: Request, res: Response, next: NextFunction) {
     try {
-      const result = await authService.register({
-        brandName,
-        brandSlug,
-        companyInfo,
-        website,
-        shippingOrigin,
-        brandCategory,
-        contactEmail,
-        contactPhone,
-        firstName,
-        lastName,
-        email,
-        password,
-      });
-      return res.status(201).json(result);
-    } catch (error: any) {
-      return res.status(400).json({
-        message: error.message || "Registration failed",
-      });
+      const result = await authService.register(req.body);
+      res.status(201).json(result);
+    } catch (err) {
+      next(err);
     }
   }
 
-  async login(req: Request, res: Response) {
+  async login(req: Request, res: Response, next: NextFunction) {
     try {
       const result = await authService.login(req.body);
-      return res.status(200).json(result);
-    } catch (error: any) {
-      return res.status(400).json({
-        message: error.message || "Login failed",
-      });
+      res.status(200).json(result);
+    } catch (err) {
+      next(err);
     }
   }
 }

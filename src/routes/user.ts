@@ -1,11 +1,9 @@
-// User management routes for a brand's team. Only the brand owner can create
-// new users — that's a deliberate restriction so owners control who gets access.
-// Listing users is open to owners and managers.
-
 import { Router } from "express";
 import { UserController } from "../controllers/user";
 import { authenticate } from "../middleware/auth";
 import { authorizeRoles } from "../middleware/role";
+import { validate } from "../middleware/validate";
+import { CreateUserDto } from "../dto/CreateUserDto";
 import { UserRole } from "../utils";
 
 const router = Router();
@@ -15,14 +13,15 @@ router.post(
   "/",
   authenticate,
   authorizeRoles(UserRole.BRAND_OWNER),
-  controller.create.bind(controller),
+  validate(CreateUserDto),
+  (req, res, next) => controller.create(req, res, next),
 );
 
 router.get(
   "/",
   authenticate,
   authorizeRoles(UserRole.BRAND_OWNER, UserRole.BRAND_MANAGER),
-  controller.list.bind(controller),
+  (req, res, next) => controller.list(req, res, next),
 );
 
 export default router;

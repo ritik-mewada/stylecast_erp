@@ -1,14 +1,16 @@
-// Business logic for order management. The status update method enforces a strict
-// state machine — you can't jump from pending straight to delivered, for example.
-// Refunds update both the order status and payment status at the same time.
-
 import { AppDataSource } from "../data-source";
 import { Order, OrderStatus, PaymentStatus } from "../entity/Order";
+import { AppError } from "../utils/AppError";
 
 export class OrderService {
   private orderRepository = AppDataSource.getRepository(Order);
 
-  async getOrders(brandId: string, page = 1, limit = 20, status?: OrderStatus) {
+  async getOrders(
+    brandId: string,
+    page = 1,
+    limit = 20,
+    status?: OrderStatus,
+  ) {
     const safePage = Math.max(Number(page) || 1, 1);
     const safeLimit = Math.min(Math.max(Number(limit) || 20, 1), 100);
 
@@ -44,7 +46,7 @@ export class OrderService {
     });
 
     if (!order) {
-      throw new Error("Order not found");
+      throw new AppError(404, "Order not found");
     }
 
     return order;
@@ -60,7 +62,7 @@ export class OrderService {
     });
 
     if (!order) {
-      throw new Error("Order not found");
+      throw new AppError(404, "Order not found");
     }
 
     const validTransitions: Record<OrderStatus, OrderStatus[]> = {
@@ -73,8 +75,9 @@ export class OrderService {
     };
 
     if (!validTransitions[order.orderStatus].includes(newStatus)) {
-      throw new Error(
-        `Invalid status transition from ${order.orderStatus} to ${newStatus}`,
+      throw new AppError(
+        422,
+        `Invalid status transition: ${order.orderStatus} → ${newStatus}`,
       );
     }
 
@@ -90,14 +93,14 @@ export class OrderService {
     });
 
     if (!order) {
-      throw new Error("Order not found");
+      throw new AppError(404, "Order not found");
     }
 
     if (
       order.orderStatus === OrderStatus.REFUNDED ||
       order.paymentStatus === PaymentStatus.REFUNDED
     ) {
-      throw new Error("Order already refunded");
+      throw new AppError(409, "This order has already been refunded");
     }
 
     order.orderStatus = OrderStatus.REFUNDED;

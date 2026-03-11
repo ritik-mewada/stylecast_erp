@@ -1,14 +1,10 @@
-// Core product logic — creating products with variants and images in one go,
-// paginated listing with optional category/status filters, update, and archive.
-// Products are never hard-deleted; archiving just marks them as inactive so
-// historical order data still references valid records.
-
 import { AppDataSource } from "../data-source";
 import { Product, ProductStatus } from "../entity/Product";
 import { ProductVariant } from "../entity/ProductVariant";
 import { ProductImage } from "../entity/ProductImage";
 import { Inventory } from "../entity/Inventory";
 import { CreateProductInput, UpdateProductInput } from "../types/product";
+import { AppError } from "../utils/AppError";
 
 export class ProductService {
   private productRepository = AppDataSource.getRepository(Product);
@@ -17,14 +13,15 @@ export class ProductService {
   private inventoryRepository = AppDataSource.getRepository(Inventory);
 
   async createProduct(brandId: string, data: CreateProductInput) {
-    const existingSkus = data.variants?.length
-      ? await this.variantRepository.find({
-          where: data.variants.map((variant) => ({ sku: variant.sku })),
-        })
-      : [];
+    if (data.variants?.length) {
+      const existingSkus = await this.variantRepository.find({
+        where: data.variants.map((v) => ({ sku: v.sku })),
+      });
 
-    if (existingSkus.length > 0) {
-      throw new Error("One or more SKUs already exist");
+      if (existingSkus.length > 0) {
+        const duplicates = existingSkus.map((v) => v.sku).join(", ");
+        throw new AppError(409, `One or more SKUs already exist: ${duplicates}`);
+      }
     }
 
     const product = this.productRepository.create({
@@ -127,7 +124,7 @@ export class ProductService {
     });
 
     if (!product) {
-      throw new Error("Product not found");
+      throw new AppError(404, "Product not found");
     }
 
     return product;
@@ -143,7 +140,7 @@ export class ProductService {
     });
 
     if (!product) {
-      throw new Error("Product not found");
+      throw new AppError(404, "Product not found");
     }
 
     Object.assign(product, data);
@@ -158,14 +155,12 @@ export class ProductService {
     });
 
     if (!product) {
-      throw new Error("Product not found");
+      throw new AppError(404, "Product not found");
     }
 
     product.status = ProductStatus.ARCHIVED;
     await this.productRepository.save(product);
 
-    return {
-      message: "Product archived successfully",
-    };
+    return { message: "Product archived successfully" };
   }
 }

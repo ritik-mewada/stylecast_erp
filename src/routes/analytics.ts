@@ -7,70 +7,52 @@ import { UserRole } from "../utils";
 const router = Router();
 const controller = new AnalyticsController();
 
+const allRoles = [
+  UserRole.BRAND_OWNER,
+  UserRole.BRAND_MANAGER,
+  UserRole.OPERATIONS_MANAGER,
+];
+
 router.get(
   "/overview",
   authenticate,
-  authorizeRoles(
-    UserRole.BRAND_OWNER,
-    UserRole.BRAND_MANAGER,
-    UserRole.OPERATIONS_MANAGER,
-  ),
-  controller.overview.bind(controller),
+  authorizeRoles(...allRoles),
+  (req, res, next) => controller.overview(req, res, next),
 );
 
 router.get(
   "/top-products",
   authenticate,
-  authorizeRoles(
-    UserRole.BRAND_OWNER,
-    UserRole.BRAND_MANAGER,
-    UserRole.OPERATIONS_MANAGER,
-  ),
-  controller.topProducts.bind(controller),
+  authorizeRoles(...allRoles),
+  (req, res, next) => controller.topProducts(req, res, next),
 );
 
 router.get(
   "/low-stock",
   authenticate,
-  authorizeRoles(
-    UserRole.BRAND_OWNER,
-    UserRole.BRAND_MANAGER,
-    UserRole.OPERATIONS_MANAGER,
-  ),
-  controller.lowStock.bind(controller),
+  authorizeRoles(...allRoles),
+  (req, res, next) => controller.lowStock(req, res, next),
 );
 
 router.get(
   "/order-status",
   authenticate,
-  authorizeRoles(
-    UserRole.BRAND_OWNER,
-    UserRole.BRAND_MANAGER,
-    UserRole.OPERATIONS_MANAGER,
-  ),
-  controller.orderStatus.bind(controller),
+  authorizeRoles(...allRoles),
+  (req, res, next) => controller.orderStatus(req, res, next),
 );
 
 router.get(
   "/inventory-turnover",
   authenticate,
-  authorizeRoles(
-    UserRole.BRAND_OWNER,
-    UserRole.BRAND_MANAGER,
-    UserRole.OPERATIONS_MANAGER,
-  ),
-  controller.inventoryTurnover.bind(controller),
+  authorizeRoles(...allRoles),
+  (req, res, next) => controller.inventoryTurnover(req, res, next),
 );
 
 router.get(
   "/conversion-rate",
   authenticate,
-  authorizeRoles(
-    UserRole.BRAND_OWNER,
-    UserRole.BRAND_MANAGER,
-    UserRole.OPERATIONS_MANAGER,
-  ),
-  controller.conversionRate.bind(controller),
+  authorizeRoles(...allRoles),
+  (req, res, next) => controller.conversionRate(req, res, next),
 );
 
 export default router;

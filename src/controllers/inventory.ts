@@ -1,52 +1,45 @@
-// Takes care of inventory-related requests. You can check stock levels for a
-// specific product variant, update how many units are in stock, and pull a list
-// of everything that's running low. Basically the stock management layer.
-
-import { Response } from "express";
+import { Response, NextFunction } from "express";
 import { InventoryService } from "../services/inventory";
 import { AuthRequest } from "../middleware/auth";
 
 const inventoryService = new InventoryService();
 
 export class InventoryController {
-  async getVariantInventory(req: AuthRequest, res: Response) {
+  async getVariantInventory(
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction,
+  ) {
     try {
       const inventory = await inventoryService.getInventoryByVariant(
         String(req.params.variantId),
       );
-
-      return res.json(inventory);
-    } catch (error: any) {
-      return res.status(404).json({
-        message: error.message,
-      });
+      res.status(200).json(inventory);
+    } catch (err) {
+      next(err);
     }
   }
 
-  async updateInventory(req: AuthRequest, res: Response) {
+  async updateInventory(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const result = await inventoryService.updateInventory(
         String(req.params.variantId),
         req.body,
       );
-
-      return res.json(result);
-    } catch (error: any) {
-      return res.status(400).json({
-        message: error.message,
-      });
+      res.status(200).json(result);
+    } catch (err) {
+      next(err);
     }
   }
 
-  async lowStock(req: AuthRequest, res: Response) {
+  async lowStock(req: AuthRequest, res: Response, next: NextFunction) {
     try {
-      const result = await inventoryService.getLowStockItems(req.user!.brandId);
-
-      return res.json(result);
-    } catch (error: any) {
-      return res.status(400).json({
-        message: error.message,
-      });
+      const result = await inventoryService.getLowStockItems(
+        req.user!.brandId,
+      );
+      res.status(200).json(result);
+    } catch (err) {
+      next(err);
     }
   }
 }

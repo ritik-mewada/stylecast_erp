@@ -1,8 +1,3 @@
-// Handles the core authentication logic. Registration creates a brand and owner
-// user together in one transaction. Login verifies the password with bcrypt and
-// returns a signed JWT. This is where the real auth logic lives — the controller
-// is just the thin wrapper that deals with HTTP.
-
 import bcrypt from "bcrypt";
 import { AppDataSource } from "../data-source";
 import { generateToken } from "../utils/jwt";
@@ -10,6 +5,7 @@ import { Brand } from "../entity/Brand";
 import { User } from "../entity/User";
 import { LoginInput, RegisterInput } from "../types/auth";
 import { UserRole } from "../utils";
+import { AppError } from "../utils/AppError";
 
 export class AuthService {
   private brandRepository = AppDataSource.getRepository(Brand);
@@ -21,7 +17,7 @@ export class AuthService {
     });
 
     if (existingBrand) {
-      throw new Error("Brand already exists");
+      throw new AppError(409, "A brand with this name or slug already exists");
     }
 
     const existingUser = await this.userRepository.findOne({
@@ -29,7 +25,7 @@ export class AuthService {
     });
 
     if (existingUser) {
-      throw new Error("User with this email already exists");
+      throw new AppError(409, "A user with this email already exists");
     }
 
     const brand = this.brandRepository.create({
@@ -83,13 +79,13 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new Error("Invalid email or password");
+      throw new AppError(401, "Invalid email or password");
     }
 
     const isPasswordValid = await bcrypt.compare(data.password, user.password);
 
     if (!isPasswordValid) {
-      throw new Error("Invalid email or password");
+      throw new AppError(401, "Invalid email or password");
     }
 
     const token = generateToken(user);

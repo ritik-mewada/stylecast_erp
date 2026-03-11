@@ -1,11 +1,8 @@
-// Handles user management within a brand. Creating a user hashes the password
-// before saving (never store plaintext!). The list method intentionally excludes
-// the password field from the response so it's never accidentally exposed.
-
 import bcrypt from "bcrypt";
 import { AppDataSource } from "../data-source";
 import { User } from "../entity/User";
 import { CreateUserInput } from "../types/user";
+import { AppError } from "../utils/AppError";
 
 export class UserService {
   private userRepository = AppDataSource.getRepository(User);
@@ -16,7 +13,7 @@ export class UserService {
     });
 
     if (existingUser) {
-      throw new Error("User with this email already exists");
+      throw new AppError(409, "A user with this email already exists");
     }
 
     const hashedPassword = await bcrypt.hash(data.password, 10);

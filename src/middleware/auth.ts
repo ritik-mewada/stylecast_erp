@@ -1,15 +1,19 @@
-// JWT authentication middleware. Any route that needs a logged-in user should
-// use this. It checks the Authorization header for a Bearer token, verifies it,
-// and sticks the decoded user info onto the request object for downstream use.
-
+/**
+ * JWT authentication middleware.
+ *
+ * Verifies the Bearer token from the Authorization header and attaches the
+ * decoded payload to req.user.  All protected routes should use this.
+ */
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import { Config } from "../config";
+import { UserRole } from "../utils";
 
 export interface AuthRequest extends Request {
   user?: {
     userId: string;
     brandId: string;
-    role: string;
+    role: UserRole;
     email: string;
   };
 }
@@ -18,29 +22,21 @@ export const authenticate = (
   req: AuthRequest,
   res: Response,
   next: NextFunction,
-) => {
+): void => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    res.status(401).json({ status: "error", message: "Authorization token required" });
+    return;
+  }
+
+  const token = authHeader.slice(7); // Remove "Bearer " prefix
+
   try {
-    const authHeader = req.headers.authorization;
-
-    if (!authHeader) {
-      return res.status(401).json({
-        message: "Authorization token required",
-      });
-    }
-
-    const token = authHeader.split(" ")[1];
-
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET as string,
-    ) as AuthRequest["user"];
-
+    const decoded = jwt.verify(token, Config.JWT_SECRET) as AuthRequest["user"];
     req.user = decoded;
-
     next();
-  } catch (error) {
-    return res.status(401).json({
-      message: "Invalid or expired token",
-    });
+  } catch {
+    res.status(401).json({ status: "error", message: "Invalid or expired token" });
   }
 };

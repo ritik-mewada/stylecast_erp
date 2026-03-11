@@ -1,12 +1,15 @@
-// A small helper that generates a signed JWT for a user. The token includes
-// the user's ID, their brand ID, role, and email — everything the API needs
-// to identify who's making a request without hitting the database each time.
-// Tokens expire after 1 day.
-
-import jwt from "jsonwebtoken";
+/**
+ * JWT token generation utility.
+ *
+ * Creates a signed token containing the minimum payload needed to identify
+ * the user across requests without hitting the database.
+ */
+import jwt, { SignOptions } from "jsonwebtoken";
 import { User } from "../entity/User";
+import { Config } from "../config";
 
-export const generateToken = (user: User) => {
+export const generateToken = (user: User): string => {
+  const options: SignOptions = { expiresIn: Config.JWT_EXPIRES_IN as SignOptions["expiresIn"] };
   return jwt.sign(
     {
       userId: user.id,
@@ -14,7 +17,7 @@ export const generateToken = (user: User) => {
       role: user.role,
       email: user.email,
     },
-    String(process.env.JWT_SECRET),
-    { expiresIn: "1d" },
+    Config.JWT_SECRET,
+    options,
   );
 };

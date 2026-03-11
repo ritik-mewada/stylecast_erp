@@ -1,11 +1,9 @@
-// Order management routes. Reading orders is available to owners, managers, and
-// operations staff. Updating the order status or triggering a refund is locked
-// down to owners and operations staff only.
-
 import { Router } from "express";
 import { OrderController } from "../controllers/order";
 import { authenticate } from "../middleware/auth";
 import { authorizeRoles } from "../middleware/role";
+import { validate } from "../middleware/validate";
+import { UpdateOrderStatusDto } from "../dto/UpdateOrderStatusDto";
 import { UserRole } from "../utils";
 
 const router = Router();
@@ -19,7 +17,7 @@ router.get(
     UserRole.BRAND_MANAGER,
     UserRole.OPERATIONS_MANAGER,
   ),
-  orderController.getAll.bind(orderController),
+  (req, res, next) => orderController.getAll(req, res, next),
 );
 
 router.get(
@@ -30,21 +28,22 @@ router.get(
     UserRole.BRAND_MANAGER,
     UserRole.OPERATIONS_MANAGER,
   ),
-  orderController.getOne.bind(orderController),
+  (req, res, next) => orderController.getOne(req, res, next),
 );
 
 router.patch(
   "/:id/status",
   authenticate,
   authorizeRoles(UserRole.BRAND_OWNER, UserRole.OPERATIONS_MANAGER),
-  orderController.updateStatus.bind(orderController),
+  validate(UpdateOrderStatusDto),
+  (req, res, next) => orderController.updateStatus(req, res, next),
 );
 
 router.patch(
   "/:id/refund",
   authenticate,
   authorizeRoles(UserRole.BRAND_OWNER, UserRole.OPERATIONS_MANAGER),
-  orderController.refund.bind(orderController),
+  (req, res, next) => orderController.refund(req, res, next),
 );
 
 export default router;

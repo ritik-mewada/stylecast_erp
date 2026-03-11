@@ -1,11 +1,7 @@
-// Business logic for brand profile operations. Includes fetching a brand by ID
-// and updating its profile. On updates, it makes sure the new name/slug aren't
-// already taken by someone else, and explicitly blocks changing the approval
-// status through this route (that's an admin-only concern).
-
 import { AppDataSource } from "../data-source";
 import { Brand, BrandApprovalStatus } from "../entity/Brand";
 import { UpdateBrandInput } from "../types/brand";
+import { AppError } from "../utils/AppError";
 
 export class BrandService {
   private brandRepository = AppDataSource.getRepository(Brand);
@@ -16,7 +12,7 @@ export class BrandService {
     });
 
     if (!brand) {
-      throw new Error("Brand not found");
+      throw new AppError(404, "Brand not found");
     }
 
     return brand;
@@ -28,7 +24,7 @@ export class BrandService {
     });
 
     if (!brand) {
-      throw new Error("Brand not found");
+      throw new AppError(404, "Brand not found");
     }
 
     if (data.slug && data.slug !== brand.slug) {
@@ -37,7 +33,7 @@ export class BrandService {
       });
 
       if (existingSlug) {
-        throw new Error("Slug already in use");
+        throw new AppError(409, "Slug is already in use");
       }
     }
 
@@ -47,12 +43,12 @@ export class BrandService {
       });
 
       if (existingName) {
-        throw new Error("Brand name already in use");
+        throw new AppError(409, "Brand name is already in use");
       }
     }
 
     const {
-      approvalStatus, // deliberately excluded
+      approvalStatus, // deliberately excluded — use updateApprovalStatus for this
       ...safeUpdates
     } = data;
 
@@ -63,13 +59,16 @@ export class BrandService {
     return brand;
   }
 
-  async updateApprovalStatus(brandId: string, approvalStatus: BrandApprovalStatus) {
+  async updateApprovalStatus(
+    brandId: string,
+    approvalStatus: BrandApprovalStatus,
+  ) {
     const brand = await this.brandRepository.findOne({
       where: { id: brandId },
     });
 
     if (!brand) {
-      throw new Error("Brand not found");
+      throw new AppError(404, "Brand not found");
     }
 
     brand.approvalStatus = approvalStatus;

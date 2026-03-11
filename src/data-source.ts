@@ -1,10 +1,14 @@
-// Sets up the database connection using TypeORM. All the entities (database
-// tables) are registered here so TypeORM knows what to manage. This is the
-// single place to tweak DB credentials or add new entities as the project grows.
-
+/**
+ * TypeORM data source configuration.
+ *
+ * - synchronize is intentionally set to false for production safety.
+ *   Use `npm run migration:generate` and `npm run migration:run` to manage schema.
+ * - All connection values come from the validated Config object.
+ * - Logging is limited to errors only to reduce noise.
+ */
 import "reflect-metadata";
-import "dotenv/config";
 import { DataSource } from "typeorm";
+import { Config } from "./config";
 import { Brand } from "./entity/Brand";
 import { User } from "./entity/User";
 import { Product } from "./entity/Product";
@@ -18,13 +22,15 @@ import { TrafficMetric } from "./entity/TrafficMatric";
 
 export const AppDataSource = new DataSource({
   type: "postgres",
-  host: process.env.DB_HOST || "localhost",
-  port: Number(process.env.DB_PORT) || 5432,
-  username: process.env.DB_USERNAME || "postgres",
-  password: process.env.DB_PASSWORD || "root",
-  database: process.env.DB_NAME || "stylecast_erp",
-  synchronize: true,
-  logging: false,
+  host: Config.DB_HOST,
+  port: Config.DB_PORT,
+  username: Config.DB_USERNAME,
+  password: Config.DB_PASSWORD,
+  database: Config.DB_NAME,
+  // ⚠️  synchronize is DISABLED — run migrations to keep the schema up-to-date.
+  //     Set to true ONLY in a local sandbox environment and never in production.
+  synchronize: false,
+  logging: ["error"],
   entities: [
     Brand,
     User,
@@ -37,7 +43,6 @@ export const AppDataSource = new DataSource({
     ShippingRule,
     TrafficMetric,
   ],
-  migrations: [],
+  migrations: ["src/migrations/*.ts"],
   subscribers: [],
 });
-

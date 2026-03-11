@@ -1,25 +1,43 @@
-// The actual entry point that kicks everything off. It connects to the database
-// first, and only starts listening for requests once that connection is confirmed.
-// If the DB fails to connect, it logs the error and exits cleanly.
-
+/**
+ * Application entry point.
+ *
+ * Initialises the database connection then starts the HTTP server.
+ * Unhandled promise rejections and uncaught exceptions are captured at the
+ * process level so no error silently swallows itself.
+ */
 import app from "./app";
 import { Config } from "./config";
 import { AppDataSource } from "./data-source";
 
-const startServer = async () => {
+// Catch uncaught synchronous exceptions before they crash silently
+process.on("uncaughtException", (err: Error) => {
+  console.error("💥 Uncaught Exception:", err.message);
+  process.exit(1);
+});
+
+const startServer = async (): Promise<void> => {
   const PORT = Config.PORT;
   try {
     await AppDataSource.initialize();
-    console.log("Database connection successfully.");
-    app.listen(PORT, () => console.log(`listening on PORT ${PORT}`));
-  } catch (err: unknown) {
-    if (err instanceof Error) {
-      console.error(err.message);
-      setTimeout(() => {
-        process.exit(1);
-      }, 1000);
-    }
+    console.log("✅  Database connection established.");
+    app.listen(PORT, () =>
+      console.log(
+        `🚀  StyleCast ERP API listening on port ${PORT} [${Config.NODE_ENV}]`,
+      ),
+    );
+  } catch (err) {
+    console.error(
+      "❌  Failed to connect to database:",
+      err instanceof Error ? err.message : err,
+    );
+    process.exit(1);
   }
 };
+
+// Catch async rejections that escape the try/catch above
+process.on("unhandledRejection", (reason: unknown) => {
+  console.error("💥 Unhandled Rejection:", reason);
+  process.exit(1);
+});
 
 void startServer();
