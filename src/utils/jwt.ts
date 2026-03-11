@@ -1,3 +1,8 @@
+// A small helper that generates a signed JWT for a user. The token includes
+// the user's ID, their brand ID, role, and email — everything the API needs
+// to identify who's making a request without hitting the database each time.
+// Tokens expire after 1 day.
+
 import jwt from "jsonwebtoken";
 import { User } from "../entity/User";
 

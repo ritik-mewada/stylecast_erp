@@ -1,3 +1,7 @@
+// A tiny utility used by the analytics service to convert a range string
+// ("daily", "weekly", "monthly") into an actual start date for DB queries.
+// Returns null if no range is given, which the service treats as "all time".
+
 export type AnalyticsRange = "daily" | "weekly" | "monthly";
 
 export const getRangeStartDate = (range?: string): Date | null => {

@@ -1,3 +1,8 @@
+// Business logic for brand profile operations. Includes fetching a brand by ID
+// and updating its profile. On updates, it makes sure the new name/slug aren't
+// already taken by someone else, and explicitly blocks changing the approval
+// status through this route (that's an admin-only concern).
+
 import { AppDataSource } from "../data-source";
 import { Brand } from "../entity/Brand";
 import { UpdateBrandInput } from "../types/brand";

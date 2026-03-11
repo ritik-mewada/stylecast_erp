@@ -1,3 +1,7 @@
+// Represents a single line item within an order — which product/variant was
+// ordered, how many, and at what price. One order can have multiple items
+// and each item points back to the specific variant that was purchased.
+
 import {
   Entity,
   PrimaryGeneratedColumn,

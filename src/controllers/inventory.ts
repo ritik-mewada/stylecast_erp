@@ -1,3 +1,7 @@
+// Takes care of inventory-related requests. You can check stock levels for a
+// specific product variant, update how many units are in stock, and pull a list
+// of everything that's running low. Basically the stock management layer.
+
 import { Response } from "express";
 import { InventoryService } from "../services/inventory";
 import { AuthRequest } from "../middleware/auth";

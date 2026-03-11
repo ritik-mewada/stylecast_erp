@@ -1,3 +1,6 @@
+// Defines the public auth routes — registration and login. These are the only
+// two endpoints that don't require a JWT token to access.
+
 import { Router } from "express";
 import { AuthController } from "../controllers/auth";
 

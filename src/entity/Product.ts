@@ -1,3 +1,7 @@
+// The Product entity is the core of the catalog. Each product belongs to a brand
+// and can have multiple variants (sizes, colors, etc.) and images. Products can
+// be either active or archived — we soft-delete rather than hard-delete.
+
 import {
   Entity,
   PrimaryGeneratedColumn,

@@ -1,3 +1,7 @@
+// The actual entry point that kicks everything off. It connects to the database
+// first, and only starts listening for requests once that connection is confirmed.
+// If the DB fails to connect, it logs the error and exits cleanly.
+
 import app from "./app";
 import { Config } from "./config";
 import { AppDataSource } from "./data-source";

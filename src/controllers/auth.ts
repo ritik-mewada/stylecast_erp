@@ -1,3 +1,8 @@
+// Handles registration and login. When someone signs up, we create both a brand
+// and a user in one shot. Login just checks credentials and hands back a token.
+// The actual heavy lifting is done in the AuthService — this file just deals with
+// the request/response layer.
+
 import { Request, Response } from "express";
 import { AuthService } from "../services/auth";
 

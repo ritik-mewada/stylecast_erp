@@ -1,3 +1,8 @@
+// The analytics service does all the heavy number crunching for the dashboard.
+// It queries orders, inventory, products, and traffic metrics to produce things
+// like sales overviews, top products, low stock alerts, and conversion rates.
+// Most methods support an optional date range (daily, weekly, monthly).
+
 import { AppDataSource } from "../data-source";
 import { Order, OrderStatus } from "../entity/Order";
 import { OrderItem } from "../entity/OrderItem";

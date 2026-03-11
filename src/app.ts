@@ -1,3 +1,7 @@
+// This is where the Express app gets put together. We set up all the middleware
+// (things like CORS, security headers, request logging) and wire up every route
+// to its matching controller. Think of it as the main hub that connects everything.
+
 import "reflect-metadata";
 import express from "express";
 import cors from "cors";

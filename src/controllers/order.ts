@@ -1,3 +1,7 @@
+// Manages order-related endpoints. Covers listing orders (with pagination and
+// status filtering), getting a single order, moving an order through its status
+// lifecycle, and processing refunds. All scoped to the authenticated brand.
+
 import { Response } from "express";
 import { AuthRequest } from "../middleware/auth";
 import { OrderService } from "../services/order";

@@ -1,3 +1,7 @@
+// Handles all the product CRUD operations — creating products (with variants and
+// images), listing them with filters, fetching a single one, updating details,
+// and archiving when they're no longer active. All tied to the requesting brand.
+
 import { Response } from "express";
 import { ProductService } from "../services/product";
 import { AuthRequest } from "../middleware/auth";

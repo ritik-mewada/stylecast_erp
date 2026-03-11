@@ -1,3 +1,7 @@
+// Sets up the database connection using TypeORM. All the entities (database
+// tables) are registered here so TypeORM knows what to manage. This is the
+// single place to tweak DB credentials or add new entities as the project grows.
+
 import "reflect-metadata";
 import { DataSource } from "typeorm";
 import { Brand } from "./entity/Brand";

@@ -1,3 +1,7 @@
+// TypeScript types for product-related inputs. Covers creating a product (with
+// optional variants and images), updating one, and the sub-types for variants
+// and images that can be included when creating a product.
+
 import { ProductStatus } from "../entity/Product";
 
 export interface CreateVariantInput {

@@ -1,3 +1,7 @@
+// Inventory routes. All three endpoints require authentication. Updating stock
+// levels is further restricted to owners and managers — floor staff can view
+// inventory but can't make changes.
+
 import { Router } from "express";
 import { InventoryController } from "../controllers/inventory";
 import { authenticate } from "../middleware/auth";

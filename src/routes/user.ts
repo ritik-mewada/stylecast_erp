@@ -1,3 +1,7 @@
+// User management routes for a brand's team. Only the brand owner can create
+// new users — that's a deliberate restriction so owners control who gets access.
+// Listing users is open to owners and managers.
+
 import { Router } from "express";
 import { UserController } from "../controllers/user";
 import { authenticate } from "../middleware/auth";

@@ -1,3 +1,7 @@
+// Stores image URLs associated with a product. Each image has an optional alt
+// text for accessibility and a sort order so the frontend can display them in
+// a specific sequence (e.g. main photo first).
+
 import {
   Entity,
   PrimaryGeneratedColumn,

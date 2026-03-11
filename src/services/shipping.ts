@@ -1,3 +1,7 @@
+// Logic for managing a brand's shipping rules. Fairly straightforward CRUD —
+// create, list, update, and delete. Rules are always scoped to the brand so
+// you can't accidentally touch another brand's shipping config.
+
 import { AppDataSource } from "../data-source";
 import { ShippingRule } from "../entity/ShippingRule";
 import {

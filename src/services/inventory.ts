@@ -1,3 +1,7 @@
+// Handles stock level management for product variants. The update method works
+// as an upsert — it creates an inventory record if one doesn't exist yet, or
+// updates the existing one. Also handles fetching the low stock alert list.
+
 import { AppDataSource } from "../data-source";
 import { Inventory } from "../entity/Inventory";
 import { ProductVariant } from "../entity/ProductVariant";

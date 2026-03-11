@@ -1,3 +1,7 @@
+// Product routes. Creating, updating, and archiving products is restricted to
+// owners and managers. Reading products is a bit more permissive — operations
+// staff can view them too, since they need access for order fulfillment.
+
 import { Router } from "express";
 import { ProductController } from "../controllers/product";
 import { authenticate } from "../middleware/auth";

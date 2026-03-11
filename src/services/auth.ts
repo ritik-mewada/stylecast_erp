@@ -1,3 +1,8 @@
+// Handles the core authentication logic. Registration creates a brand and owner
+// user together in one transaction. Login verifies the password with bcrypt and
+// returns a signed JWT. This is where the real auth logic lives — the controller
+// is just the thin wrapper that deals with HTTP.
+
 import bcrypt from "bcrypt";
 import { AppDataSource } from "../data-source";
 import { generateToken } from "../utils/jwt";

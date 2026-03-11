@@ -1,3 +1,7 @@
+// Represents a customer order placed for a brand. Tracks both the order status
+// (pending → confirmed → shipped → delivered) and the payment status separately.
+// Each order holds the shipping address and links to its individual line items.
+
 import {
   Entity,
   PrimaryGeneratedColumn,

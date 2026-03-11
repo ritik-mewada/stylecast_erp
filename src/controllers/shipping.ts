@@ -1,3 +1,7 @@
+// Takes care of shipping rule management. Brands can create rules for different
+// regions (name, fee, free shipping threshold, and delivery estimate), list all
+// their rules, update them, or delete ones they no longer need.
+
 import { Response } from "express";
 import { ShippingService } from "../services/shipping";
 import { AuthRequest } from "../middleware/auth";

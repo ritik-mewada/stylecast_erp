@@ -1,3 +1,7 @@
+// Handles user management for a brand. Brand owners can invite new team members
+// (staff/managers) and list everyone on their team. Only brand owners should
+// be able to create new users — that's enforced at the route level.
+
 import { Response } from "express";
 import { UserService } from "../services/user";
 import { AuthRequest } from "../middleware/auth";

@@ -1,3 +1,7 @@
+// Manages brand profile endpoints. Right now it supports fetching the current
+// brand's info and updating the profile. Only authenticated users can access
+// these, and you can only modify your own brand's data.
+
 import { Response } from "express";
 import { BrandService } from "../services/brand";
 import { AuthRequest } from "../middleware/auth";

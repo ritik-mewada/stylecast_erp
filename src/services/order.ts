@@ -1,3 +1,7 @@
+// Business logic for order management. The status update method enforces a strict
+// state machine — you can't jump from pending straight to delivered, for example.
+// Refunds update both the order status and payment status at the same time.
+
 import { AppDataSource } from "../data-source";
 import { Order, OrderStatus, PaymentStatus } from "../entity/Order";
 

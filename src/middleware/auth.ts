@@ -1,3 +1,7 @@
+// JWT authentication middleware. Any route that needs a logged-in user should
+// use this. It checks the Authorization header for a Bearer token, verifies it,
+// and sticks the decoded user info onto the request object for downstream use.
+
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 

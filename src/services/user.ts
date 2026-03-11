@@ -1,3 +1,7 @@
+// Handles user management within a brand. Creating a user hashes the password
+// before saving (never store plaintext!). The list method intentionally excludes
+// the password field from the response so it's never accidentally exposed.
+
 import bcrypt from "bcrypt";
 import { AppDataSource } from "../data-source";
 import { User } from "../entity/User";

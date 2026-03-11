@@ -1,3 +1,7 @@
+// Tracks stock levels for each product variant. Has a one-to-one relationship
+// with ProductVariant, and keeps a low stock threshold so the system can flag
+// items that are running out before they hit zero.
+
 import {
   Entity,
   PrimaryGeneratedColumn,

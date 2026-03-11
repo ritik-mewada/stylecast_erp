@@ -1,3 +1,7 @@
+// TypeScript types for authentication inputs. RegisterInput covers everything
+// needed to create a new brand + owner account, and LoginInput is just the
+// email/password pair for signing in.
+
 import { UserRole } from "../utils";
 
 export interface RegisterInput {

@@ -1,3 +1,7 @@
+// Represents a user account in the system. Every user belongs to a brand and
+// has a role (owner, manager, operations) that controls what they're allowed
+// to do. Passwords are stored hashed — never in plaintext.
+
 import {
   Entity,
   PrimaryGeneratedColumn,

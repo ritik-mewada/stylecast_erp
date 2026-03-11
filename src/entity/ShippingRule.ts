@@ -1,3 +1,7 @@
+// Defines a shipping rule for a specific region. Each brand can have multiple
+// rules covering different areas — with a flat shipping fee, an optional free
+// shipping threshold, and an estimated delivery window.
+
 import {
   Entity,
   PrimaryGeneratedColumn,

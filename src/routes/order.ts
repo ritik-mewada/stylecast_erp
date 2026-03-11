@@ -1,3 +1,7 @@
+// Order management routes. Reading orders is available to owners, managers, and
+// operations staff. Updating the order status or triggering a refund is locked
+// down to owners and operations staff only.
+
 import { Router } from "express";
 import { OrderController } from "../controllers/order";
 import { authenticate } from "../middleware/auth";

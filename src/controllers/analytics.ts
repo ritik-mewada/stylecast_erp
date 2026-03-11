@@ -1,3 +1,7 @@
+// Handles all the analytics-related API endpoints — things like the dashboard
+// overview, top-selling products, inventory turnover, and conversion rates.
+// Each method just grabs what it needs from the analytics service and sends it back.
+
 import { Response } from "express";
 import { AuthRequest } from "../middleware/auth";
 import { AnalyticsService } from "../services/analytics";

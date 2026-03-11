@@ -1,3 +1,7 @@
+// The Brand entity represents a store on the platform. It holds all the brand's
+// profile info (name, slug, contact details, category) and links to its users,
+// products, orders, shipping rules, and traffic metrics.
+
 import {
   Entity,
   PrimaryGeneratedColumn,

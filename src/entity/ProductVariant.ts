@@ -1,3 +1,7 @@
+// A product variant is a specific version of a product — different size, color,
+// or material. Each variant has its own unique SKU and can optionally override
+// the base product price. It also links to its own inventory record.
+
 import {
   Entity,
   PrimaryGeneratedColumn,

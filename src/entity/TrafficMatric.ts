@@ -1,3 +1,7 @@
+// Stores daily traffic data for a brand — how many sessions happened and how
+// many orders were placed that day. This powers the conversion rate analytics.
+// Data here is expected to be synced in from an external marketplace or analytics source.
+
 import {
   Entity,
   PrimaryGeneratedColumn,

@@ -1,3 +1,7 @@
+// Shipping rule routes. Creating and editing rules needs owner or manager access.
+// Listing rules is open to all authenticated users, but deleting a rule is
+// only allowed for brand owners since it's a more sensitive operation.
+
 import { Router } from "express";
 import { ShippingController } from "../controllers/shipping";
 import { authenticate } from "../middleware/auth";

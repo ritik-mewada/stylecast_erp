@@ -1,3 +1,8 @@
+// Core product logic — creating products with variants and images in one go,
+// paginated listing with optional category/status filters, update, and archive.
+// Products are never hard-deleted; archiving just marks them as inactive so
+// historical order data still references valid records.
+
 import { AppDataSource } from "../data-source";
 import { Product, ProductStatus } from "../entity/Product";
 import { ProductVariant } from "../entity/ProductVariant";
