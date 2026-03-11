@@ -6,13 +6,25 @@ const swaggerDocument = {
   info: {
     title: "StyleCast Brand Admin ERP API",
     version: "1.0.0",
-    description: "API documentation for the StyleCast Brand Admin ERP backend.",
+    description:
+      "Interactive API documentation for the StyleCast Brand Admin ERP backend.",
   },
   servers: [
     {
       url: "http://localhost:8080",
       description: "Local development server",
     },
+  ],
+  tags: [
+    { name: "System", description: "System and health endpoints" },
+    { name: "Auth", description: "Authentication endpoints" },
+    { name: "Brands", description: "Brand onboarding and profile management" },
+    { name: "Users", description: "Brand team user management" },
+    { name: "Products", description: "Product catalog management" },
+    { name: "Inventory", description: "Inventory management" },
+    { name: "Orders", description: "Order management" },
+    { name: "Shipping", description: "Shipping configuration" },
+    { name: "Analytics", description: "Brand analytics dashboard" },
   ],
   components: {
     securitySchemes: {
@@ -54,6 +66,7 @@ const swaggerDocument = {
           password: { type: "string", example: "Password123" },
         },
       },
+
       LoginRequest: {
         type: "object",
         required: ["email", "password"],
@@ -62,6 +75,32 @@ const swaggerDocument = {
           password: { type: "string", example: "Password123" },
         },
       },
+
+      LoginResponse: {
+        type: "object",
+        properties: {
+          message: { type: "string", example: "Login successful" },
+          user: {
+            type: "object",
+            properties: {
+              id: { type: "string", example: "uuid-user-id" },
+              firstName: { type: "string", example: "Ritik" },
+              lastName: { type: "string", example: "Mewada" },
+              email: { type: "string", example: "ritik@example.com" },
+              role: {
+                type: "string",
+                example: "brand_owner",
+              },
+              brandId: { type: "string", example: "uuid-brand-id" },
+            },
+          },
+          token: {
+            type: "string",
+            example: "jwt_token_here",
+          },
+        },
+      },
+
       CreateUserRequest: {
         type: "object",
         required: ["firstName", "lastName", "email", "password", "role"],
@@ -77,6 +116,7 @@ const swaggerDocument = {
           },
         },
       },
+
       UpdateBrandRequest: {
         type: "object",
         properties: {
@@ -91,6 +131,7 @@ const swaggerDocument = {
           isActive: { type: "boolean", example: true },
         },
       },
+
       CreateProductRequest: {
         type: "object",
         required: ["title", "price", "category"],
@@ -131,6 +172,7 @@ const swaggerDocument = {
           },
         },
       },
+
       UpdateProductRequest: {
         type: "object",
         properties: {
@@ -145,6 +187,7 @@ const swaggerDocument = {
           },
         },
       },
+
       UpdateInventoryRequest: {
         type: "object",
         properties: {
@@ -152,6 +195,7 @@ const swaggerDocument = {
           lowStockThreshold: { type: "integer", example: 5 },
         },
       },
+
       UpdateOrderStatusRequest: {
         type: "object",
         required: ["orderStatus"],
@@ -170,6 +214,7 @@ const swaggerDocument = {
           },
         },
       },
+
       CreateShippingRuleRequest: {
         type: "object",
         required: ["regionName", "shippingFee", "deliveryEstimate"],
@@ -180,6 +225,7 @@ const swaggerDocument = {
           deliveryEstimate: { type: "string", example: "5-7 days" },
         },
       },
+
       UpdateShippingRuleRequest: {
         type: "object",
         properties: {
@@ -187,6 +233,66 @@ const swaggerDocument = {
           shippingFee: { type: "number", example: 15 },
           freeShippingThreshold: { type: "number", example: 120 },
           deliveryEstimate: { type: "string", example: "7-10 days" },
+        },
+      },
+
+      AnalyticsOverviewResponse: {
+        type: "object",
+        properties: {
+          range: { type: "string", example: "monthly" },
+          totalOrders: { type: "integer", example: 12 },
+          totalProducts: { type: "integer", example: 48 },
+          totalActiveProducts: { type: "integer", example: 42 },
+          totalSales: { type: "number", example: 3480 },
+        },
+      },
+
+      TopProductResponse: {
+        type: "object",
+        properties: {
+          productId: { type: "string", example: "uuid-1" },
+          title: { type: "string", example: "Classic Black Jacket" },
+          unitsSold: { type: "integer", example: 18 },
+          revenue: { type: "number", example: 2160 },
+        },
+      },
+
+      OrderStatusSummaryResponse: {
+        type: "object",
+        properties: {
+          status: { type: "string", example: "pending" },
+          count: { type: "integer", example: 3 },
+        },
+      },
+
+      InventoryTurnoverResponse: {
+        type: "object",
+        properties: {
+          range: { type: "string", example: "monthly" },
+          unitsSold: { type: "integer", example: 120 },
+          currentInventoryUnits: { type: "integer", example: 80 },
+          turnoverRate: { type: "number", example: 1.5 },
+          note: {
+            type: "string",
+            example:
+              "Inventory turnover is approximated as units sold divided by current inventory units for the selected period.",
+          },
+        },
+      },
+
+      ConversionRateResponse: {
+        type: "object",
+        properties: {
+          range: { type: "string", example: "weekly" },
+          sessions: { type: "integer", example: 1500 },
+          ordersPlaced: { type: "integer", example: 45 },
+          conversionRate: { type: "number", example: 3.0 },
+          unit: { type: "string", example: "%" },
+          note: {
+            type: "string",
+            example:
+              "Conversion rate is based on marketplace traffic data synced into traffic_metrics.",
+          },
         },
       },
     },
@@ -223,6 +329,7 @@ const swaggerDocument = {
         },
       },
     },
+
     "/auth/login": {
       post: {
         tags: ["Auth"],
@@ -236,7 +343,14 @@ const swaggerDocument = {
           },
         },
         responses: {
-          "200": { description: "Login successful" },
+          "200": {
+            description: "Login successful",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/LoginResponse" },
+              },
+            },
+          },
           "400": { description: "Invalid credentials" },
         },
       },
@@ -253,6 +367,7 @@ const swaggerDocument = {
         },
       },
     },
+
     "/brands/profile": {
       put: {
         tags: ["Brands"],
@@ -308,23 +423,6 @@ const swaggerDocument = {
     },
 
     "/products": {
-      post: {
-        tags: ["Products"],
-        summary: "Create product with variants and images",
-        security: [{ bearerAuth: [] }],
-        requestBody: {
-          required: true,
-          content: {
-            "application/json": {
-              schema: { $ref: "#/components/schemas/CreateProductRequest" },
-            },
-          },
-        },
-        responses: {
-          "201": { description: "Product created successfully" },
-          "400": { description: "Validation error" },
-        },
-      },
       get: {
         tags: ["Products"],
         summary: "List products",
@@ -359,7 +457,25 @@ const swaggerDocument = {
           "200": { description: "Products fetched successfully" },
         },
       },
+      post: {
+        tags: ["Products"],
+        summary: "Create product with variants and images",
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/CreateProductRequest" },
+            },
+          },
+        },
+        responses: {
+          "201": { description: "Product created successfully" },
+          "400": { description: "Validation error" },
+        },
+      },
     },
+
     "/products/{id}": {
       get: {
         tags: ["Products"],
@@ -422,6 +538,23 @@ const swaggerDocument = {
     },
 
     "/inventory/variant/{variantId}": {
+      get: {
+        tags: ["Inventory"],
+        summary: "Get inventory for a variant",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            in: "path",
+            name: "variantId",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
+        responses: {
+          "200": { description: "Inventory fetched successfully" },
+          "404": { description: "Inventory not found" },
+        },
+      },
       put: {
         tags: ["Inventory"],
         summary: "Update inventory for a variant",
@@ -447,24 +580,8 @@ const swaggerDocument = {
           "400": { description: "Validation error" },
         },
       },
-      get: {
-        tags: ["Inventory"],
-        summary: "Get inventory for a variant",
-        security: [{ bearerAuth: [] }],
-        parameters: [
-          {
-            in: "path",
-            name: "variantId",
-            required: true,
-            schema: { type: "string" },
-          },
-        ],
-        responses: {
-          "200": { description: "Inventory fetched successfully" },
-          "404": { description: "Inventory not found" },
-        },
-      },
     },
+
     "/inventory/low-stock": {
       get: {
         tags: ["Inventory"],
@@ -479,9 +596,9 @@ const swaggerDocument = {
     "/orders": {
       get: {
         tags: ["Orders"],
-        summary: "List orders",
+        summary: "List incoming orders",
         description:
-          "Orders are created by the StyleCast customer marketplace. The Brand Admin ERP only allows brands to view and manage orders.",
+          "Orders are created by the StyleCast customer marketplace. The Brand Admin ERP allows brands to view and manage them.",
         security: [{ bearerAuth: [] }],
         parameters: [
           {
@@ -516,6 +633,7 @@ const swaggerDocument = {
         },
       },
     },
+
     "/orders/{id}": {
       get: {
         tags: ["Orders"],
@@ -537,6 +655,7 @@ const swaggerDocument = {
         },
       },
     },
+
     "/orders/{id}/status": {
       patch: {
         tags: ["Orders"],
@@ -568,6 +687,7 @@ const swaggerDocument = {
         },
       },
     },
+
     "/orders/{id}/refund": {
       patch: {
         tags: ["Orders"],
@@ -618,6 +738,7 @@ const swaggerDocument = {
         },
       },
     },
+
     "/shipping/{id}": {
       put: {
         tags: ["Shipping"],
@@ -685,6 +806,13 @@ const swaggerDocument = {
         responses: {
           "200": {
             description: "Overview analytics fetched successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/AnalyticsOverviewResponse",
+                },
+              },
+            },
           },
           "401": { description: "Unauthorized" },
           "403": { description: "Forbidden" },
@@ -720,6 +848,14 @@ const swaggerDocument = {
         responses: {
           "200": {
             description: "Top products fetched successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "array",
+                  items: { $ref: "#/components/schemas/TopProductResponse" },
+                },
+              },
+            },
           },
           "401": { description: "Unauthorized" },
           "403": { description: "Forbidden" },
@@ -766,6 +902,16 @@ const swaggerDocument = {
         responses: {
           "200": {
             description: "Order status analytics fetched successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "array",
+                  items: {
+                    $ref: "#/components/schemas/OrderStatusSummaryResponse",
+                  },
+                },
+              },
+            },
           },
           "401": { description: "Unauthorized" },
           "403": { description: "Forbidden" },
@@ -795,6 +941,13 @@ const swaggerDocument = {
         responses: {
           "200": {
             description: "Inventory turnover fetched successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/InventoryTurnoverResponse",
+                },
+              },
+            },
           },
           "401": { description: "Unauthorized" },
           "403": { description: "Forbidden" },
@@ -807,7 +960,7 @@ const swaggerDocument = {
         tags: ["Analytics"],
         summary: "Get conversion rate",
         description:
-          "Returns conversion rate for the authenticated brand using marketplace traffic data synced into traffic_metrics. Supports time ranges: daily, weekly, monthly.",
+          "Returns conversion rate for the authenticated brand using marketplace traffic data synced into traffic_metrics. Supports time ranges: daily, weekly, monthly. If no traffic data exists, zero values will be returned.",
         security: [{ bearerAuth: [] }],
         parameters: [
           {
@@ -824,6 +977,13 @@ const swaggerDocument = {
         responses: {
           "200": {
             description: "Conversion rate fetched successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/ConversionRateResponse",
+                },
+              },
+            },
           },
           "401": { description: "Unauthorized" },
           "403": { description: "Forbidden" },
@@ -839,20 +999,26 @@ export const setupSwagger = (app: Express) => {
     swaggerUi.serve,
     swaggerUi.setup(swaggerDocument, {
       swaggerOptions: {
-        responseInterceptor: (response: any) => {
-          if (response.url.includes("/auth/login")) {
-            const data = JSON.parse(response.text);
+        persistAuthorization: true,
 
-            if (data.token) {
-              localStorage.setItem("jwt_token", data.token);
+        responseInterceptor: (response: any) => {
+          try {
+            if (response.url && response.url.includes("/auth/login")) {
+              const data = JSON.parse(response.text);
+
+              if (data?.token) {
+                window.localStorage.setItem("stylecast_jwt_token", data.token);
+              }
             }
+          } catch (error) {
+            console.error("Swagger login response parse error:", error);
           }
 
           return response;
         },
 
         requestInterceptor: (req: any) => {
-          const token = localStorage.getItem("jwt_token");
+          const token = window.localStorage.getItem("stylecast_jwt_token");
 
           if (token) {
             req.headers["Authorization"] = `Bearer ${token}`;
