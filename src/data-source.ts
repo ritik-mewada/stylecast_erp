@@ -27,9 +27,7 @@ export const AppDataSource = new DataSource({
   username: Config.DB_USERNAME,
   password: Config.DB_PASSWORD,
   database: Config.DB_NAME,
-  // ⚠️  synchronize is DISABLED — run migrations to keep the schema up-to-date.
-  //     Set to true ONLY in a local sandbox environment and never in production.
-  synchronize: false,
+  synchronize: true,
   logging: ["error"],
   entities: [
     Brand,
