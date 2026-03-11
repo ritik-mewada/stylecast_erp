@@ -4,7 +4,7 @@
 // status through this route (that's an admin-only concern).
 
 import { AppDataSource } from "../data-source";
-import { Brand } from "../entity/Brand";
+import { Brand, BrandApprovalStatus } from "../entity/Brand";
 import { UpdateBrandInput } from "../types/brand";
 
 export class BrandService {
@@ -58,6 +58,21 @@ export class BrandService {
 
     Object.assign(brand, safeUpdates);
 
+    await this.brandRepository.save(brand);
+
+    return brand;
+  }
+
+  async updateApprovalStatus(brandId: string, approvalStatus: BrandApprovalStatus) {
+    const brand = await this.brandRepository.findOne({
+      where: { id: brandId },
+    });
+
+    if (!brand) {
+      throw new Error("Brand not found");
+    }
+
+    brand.approvalStatus = approvalStatus;
     await this.brandRepository.save(brand);
 
     return brand;

@@ -390,6 +390,50 @@ const swaggerDocument = {
       },
     },
 
+    "/brands/{id}/approval": {
+      patch: {
+        tags: ["Brands"],
+        summary: "Update brand approval status",
+        description:
+          "Allows a brand owner to approve or reject a brand's onboarding application. Valid statuses are: pending, approved, rejected.",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            in: "path",
+            name: "id",
+            required: true,
+            schema: { type: "string" },
+            description: "ID of the brand to update",
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["approvalStatus"],
+                properties: {
+                  approvalStatus: {
+                    type: "string",
+                    enum: ["pending", "approved", "rejected"],
+                    example: "approved",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": { description: "Brand approval status updated successfully" },
+          "400": { description: "Invalid approval status or brand not found" },
+          "401": { description: "Unauthorized" },
+          "403": { description: "Forbidden — Brand Owner role required" },
+        },
+      },
+    },
+
+
     "/users": {
       get: {
         tags: ["Users"],
