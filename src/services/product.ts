@@ -7,12 +7,14 @@ import { AppDataSource } from "../data-source";
 import { Product, ProductStatus } from "../entity/Product";
 import { ProductVariant } from "../entity/ProductVariant";
 import { ProductImage } from "../entity/ProductImage";
+import { Inventory } from "../entity/Inventory";
 import { CreateProductInput, UpdateProductInput } from "../types/product";
 
 export class ProductService {
   private productRepository = AppDataSource.getRepository(Product);
   private variantRepository = AppDataSource.getRepository(ProductVariant);
   private imageRepository = AppDataSource.getRepository(ProductImage);
+  private inventoryRepository = AppDataSource.getRepository(Inventory);
 
   async createProduct(brandId: string, data: CreateProductInput) {
     const existingSkus = data.variants?.length
@@ -48,7 +50,18 @@ export class ProductService {
         }),
       );
 
-      await this.variantRepository.save(variants);
+      const savedVariants = await this.variantRepository.save(variants);
+
+      // Auto-seed an inventory record for each new variant so that
+      // GET /inventory/variant/:id works immediately after product creation.
+      const inventoryRecords = savedVariants.map((variant) =>
+        this.inventoryRepository.create({
+          variantId: variant.id,
+          quantity: 0,
+          lowStockThreshold: 5,
+        }),
+      );
+      await this.inventoryRepository.save(inventoryRecords);
     }
 
     if (data.images?.length) {
