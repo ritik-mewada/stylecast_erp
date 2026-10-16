@@ -1,9 +1,12 @@
 name: CI
 
+# Automatic runs are paused during development; run it by hand from the Actions tab.
+# To re-enable, uncomment the push/pull_request triggers.
 on:
-  push:
-    branches: [main]
-  pull_request:
+  # push:
+  #   branches: [main]
+  # pull_request:
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}
