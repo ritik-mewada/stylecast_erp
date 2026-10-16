@@ -39,8 +39,10 @@ Detailed plan: [docs/plans/2026-10-15-frontend-dashboard.md](docs/plans/2026-10-
 - [x] Design phase: every screen built on a mock API, reviewed and signed off (frontend `15ec478`)
 - [ ] Backend endpoints the UI needs (list in the plan: spec JSON, CORS, search/filters, paginated inventory, sales series, admin stats, uploads, password flows, `/users/me`)
 - [ ] API integration: Axios client + JWT, generated types, swap `src/api/*` mock bodies for HTTP, remove demo accounts and mocks
-- [ ] Tests (Vitest, Playwright smoke), GitHub Actions
-- [ ] Deploy to Vercel/Netlify; add the URL to `ALLOWED_ORIGINS`
+- [x] GitHub Actions CI: lint, typecheck, build (frontend); typecheck, build (backend)
+- [x] Mock-API demo deployed to GitHub Pages (`deploy-pages.yml`)
+- [ ] Tests (Vitest, Playwright smoke), added to CI
+- [ ] Once integrated, point the Pages build at the deployed API (`VITE_API_URL`) and add `https://ritik-mewada.github.io` to `ALLOWED_ORIGINS`
 
 ## Step 4 — Polish
 - [ ] Rename `TrafficMatric.ts` → `TrafficMetric.ts`
