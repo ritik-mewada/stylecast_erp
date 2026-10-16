@@ -33,6 +33,15 @@ Detailed plan: [docs/plans/2026-10-14-step1-correctness-fixes.md](docs/plans/202
 - [ ] Deploy to Render or Railway with managed Postgres; migrations run on release
 - [ ] Live Swagger link at `/api-docs`
 
+## Step 3.5 — Frontend dashboard (`frontend/`)
+Detailed plan: [docs/plans/2026-10-15-frontend-dashboard.md](docs/plans/2026-10-15-frontend-dashboard.md)
+
+- [x] Design phase: every screen built on a mock API, reviewed and signed off (frontend `15ec478`)
+- [ ] Backend endpoints the UI needs (list in the plan: spec JSON, CORS, search/filters, paginated inventory, sales series, admin stats, uploads, password flows, `/users/me`)
+- [ ] API integration: Axios client + JWT, generated types, swap `src/api/*` mock bodies for HTTP, remove demo accounts and mocks
+- [ ] Tests (Vitest, Playwright smoke), GitHub Actions
+- [ ] Deploy to Vercel/Netlify; add the URL to `ALLOWED_ORIGINS`
+
 ## Step 4 — Polish
 - [ ] Rename `TrafficMatric.ts` → `TrafficMetric.ts`
 - [ ] ESLint config + `npm run lint` in CI

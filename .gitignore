@@ -1,8 +1,18 @@
-.idea/
-.vscode/
+# Dependencies and build output (both apps)
 node_modules/
+dist/
 build/
 tmp/
 temp/
+
+# Environment
 .env
-dist/
+.env.*
+!.env.example
+*.local
+
+# Editors and OS
+.idea/
+.vscode/
+.DS_Store
+*.log
