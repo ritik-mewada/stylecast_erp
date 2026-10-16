@@ -1,13 +1,12 @@
 name: Deploy frontend to GitHub Pages
 
-# Auto-deploy on merge is paused during development; deploy by hand from the Actions tab.
-# To re-enable, uncomment the push trigger.
+# Deploys after every merge to main that touches the frontend. It doesn't block merging.
 on:
-  # push:
-  #   branches: [main]
-  #   paths:
-  #     - frontend/**
-  #     - .github/workflows/deploy-pages.yml
+  push:
+    branches: [main]
+    paths:
+      - frontend/**
+      - .github/workflows/deploy-pages.yml
   workflow_dispatch:
 
 permissions:

@@ -41,7 +41,7 @@ Detailed plan: [docs/plans/2026-10-15-frontend-dashboard.md](docs/plans/2026-10-
 - [ ] API integration: Axios client + JWT, generated types, swap `src/api/*` mock bodies for HTTP, remove demo accounts and mocks
 - [x] GitHub Actions CI: lint, typecheck, build (frontend); typecheck, build (backend)
 - [x] Mock-API demo deployed to GitHub Pages (`deploy-pages.yml`)
-- [ ] Re-enable automatic CI and deploy triggers (paused during development; manual runs only)
+- [ ] Re-enable automatic CI triggers (paused during development; manual runs only). Deploy already runs on merge.
 - [ ] Tests (Vitest, Playwright smoke), added to CI
 - [ ] Once integrated, point the Pages build at the deployed API (`VITE_API_URL`) and add `https://ritik-mewada.github.io` to `ALLOWED_ORIGINS`
 
