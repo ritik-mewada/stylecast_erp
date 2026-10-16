@@ -40,7 +40,7 @@ export function RouteErrorPage({ inline = false }: { inline?: boolean }) {
         </pre>
       )}
       <div className="mt-6 flex gap-2">
-        <Button variant="outline" onClick={() => window.location.assign("/")}>
+        <Button variant="outline" onClick={() => window.location.assign(import.meta.env.BASE_URL)}>
           Go home
         </Button>
         {!notFound && (
