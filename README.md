@@ -29,7 +29,7 @@ The dashboard currently runs on a built-in mock API, so it works without the bac
 - **CI** (`.github/workflows/ci.yml`): lints, typechecks and builds the frontend, and typechecks and builds the backend.
 - **Deploy** (`.github/workflows/deploy-pages.yml`): builds the dashboard with `BASE_PATH=/stylecast_erp/` and publishes it to GitHub Pages at <https://ritik-mewada.github.io/stylecast_erp/>.
 
-Both are **manual-only during development**: run them from the Actions tab (**Run workflow**). Automatic runs on push/PR come back at the end of development by uncommenting the triggers at the top of each file.
+The deploy runs automatically after every merge to `main` that touches `frontend/`, and can also be run by hand. CI is **manual-only during development** (Actions tab → **Run workflow**); its push/PR triggers come back at the end of development by uncommenting them at the top of `ci.yml`.
 
 The live demo runs on the mock API, like local dev. One-time setup: in the repo's **Settings → Pages**, set **Source** to **GitHub Actions**.
 
