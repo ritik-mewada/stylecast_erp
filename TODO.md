@@ -33,7 +33,7 @@ Detailed plan: [docs/plans/2026-10-14-step1-correctness-fixes.md](docs/plans/202
 - [ ] Deploy to Render or Railway with managed Postgres; migrations run on release
 - [ ] Live Swagger link at `/api-docs`
 
-## Step 3.5 — Frontend dashboard (separate repo: `../stylecast_erp_frontend`)
+## Step 3.5 — Frontend dashboard (`frontend/`)
 Detailed plan: [docs/plans/2026-10-15-frontend-dashboard.md](docs/plans/2026-10-15-frontend-dashboard.md)
 
 - [x] Design phase: every screen built on a mock API, reviewed and signed off (frontend `15ec478`)

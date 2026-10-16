@@ -47,8 +47,8 @@ Routes → Controllers → Services → TypeORM Repositories → PostgreSQL
 ### 1. Clone the repository
 
 ```bash
-git clone <your-repo-url>
-cd stylecast_erp_backend
+git clone https://github.com/ritik-mewada/stylecast_erp.git
+cd stylecast_erp/backend
 ```
 
 ### 2. Install dependencies
@@ -59,7 +59,7 @@ npm install
 
 ### 3. Configure environment variables
 
-Create a `.env` file in the project root (you can copy the example below):
+Create a `.env` file in `backend/` (you can copy the example below):
 
 ```env
 # Server

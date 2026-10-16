@@ -2,7 +2,7 @@
 
 **Goal:** A web dashboard for StyleCast ERP so brand staff can manage products, inventory, orders and shipping, see analytics, and so a platform admin can approve brands — all on top of the existing REST API.
 
-**Repo:** separate repo `stylecast_erp_frontend` (keeps the backend's Docker/deploy setup untouched).
+**Location:** `frontend/` in this repo, next to `backend/`. Built as a separate repo first and moved in with `git subtree` (history kept). Each app has its own `package.json` and deploys on its own.
 
 **Status (2026-10-15):** design phase done and signed off. Every screen is built against an in-memory mock API (`src/api/*.ts`, `src/mocks/seed.ts`) whose functions mirror the backend endpoints and role rules. Next is API integration (Task 1 HTTP client, Task 0 type generation), which is blocked on the backend changes below. Frontend repo first commit: `15ec478`.
 

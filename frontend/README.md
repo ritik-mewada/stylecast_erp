@@ -1,6 +1,6 @@
 # StyleCast ERP — Frontend
 
-Admin dashboard for the [StyleCast ERP API](../stylecast_erp_backend).
+Admin dashboard for the [StyleCast ERP API](../backend).
 
 **Stack:** Vite · React 19 · TypeScript · React Router 7 · TanStack Query · React Hook Form + Zod · Tailwind CSS 4 · shadcn/ui (Base UI) · Recharts
 
