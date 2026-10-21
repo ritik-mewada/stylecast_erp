@@ -29,24 +29,44 @@
 
 ## Backend changes needed
 
+All done (2026-10-21). The OpenAPI spec at `/api-docs.json` describes every endpoint and response.
+
 Already in Step 1:
 
-- [ ] `platform_admin` role, `GET /brands?status=`, admin-only `PATCH /brands/:id/approval`
-- [ ] `POST /orders` with stock locking; restock on cancel/refund
-- [ ] Brand-scoped inventory endpoints
+- [x] `platform_admin` role, `GET /brands?status=`, admin-only `PATCH /brands/:id/approval`
+- [x] `POST /orders` with stock locking; restock on cancel/refund
+- [x] Brand-scoped inventory endpoints
 
 New, needed by screens that exist in the UI:
 
-- [ ] Serve the OpenAPI spec as JSON (`GET /api-docs.json`) for type generation
-- [ ] Add the frontend origin (`http://localhost:5173`, deployed URL later) to `ALLOWED_ORIGINS`
-- [ ] `user` (id, name, role, brandId) in the login response, or `GET /users/me`
-- [ ] `search` query param on `GET /products` (title/SKU) and `GET /orders` (customer/email/order #); `paymentStatus` filter on `GET /orders`
-- [ ] Paginated `GET /inventory?page=&limit=&status=low|out&search=` (the inventory page pages in the browser for now)
-- [ ] `GET /analytics/sales-series` (daily revenue + order count for the dashboard chart)
-- [ ] Platform stats for `/admin` (brand counts by status, brand user count)
-- [ ] `POST /uploads` (multipart → `{ url }`) for product images
-- [ ] `POST /auth/forgot-password` + reset-link flow
-- [ ] `PUT /users/me` and `PUT /users/me/password` (Account page)
+- [x] Serve the OpenAPI spec as JSON (`GET /api-docs.json`) for type generation
+- [x] Add the frontend origin (`http://localhost:5173`, deployed URL later) to `ALLOWED_ORIGINS`
+- [x] `user` (id, name, role, brandId) in the login response, or `GET /users/me`
+- [x] `search` query param on `GET /products` (title/SKU) and `GET /orders` (customer/email/order #); `paymentStatus` filter on `GET /orders`
+- [x] Paginated `GET /inventory?page=&limit=&status=low|out&search=` (the inventory page pages in the browser for now)
+- [x] `GET /analytics/sales-series` (daily revenue + order count for the dashboard chart)
+- [x] Platform stats for `/admin` (brand counts by status, brand user count)
+- [x] `POST /uploads` (multipart → `{ url }`) for product images
+- [x] `POST /auth/forgot-password` + reset-link flow
+- [x] `PUT /users/me` and `PUT /users/me/password` (Account page)
+
+---
+
+## Integration notes (from the backend work)
+
+Where the real API differs from the mock in `src/api/*`:
+
+- **Pagination:** lists return `{ data, pagination: { page, limit, total, totalPages } }`, not `{ data, total, page, limit }`. `limit` is capped at 100.
+- **Session:** login returns `{ user, token }` without the brand. Call `GET /users/me` (`{ user, brand }`) after login and on reload. `PUT /users/me` returns the same shape.
+- **Inventory page and new-order picker:** use `GET /inventory?status=low|out&search=&page=` (flat rows plus `summary` counts) instead of `listProducts({ limit: 500 })`.
+- **Low stock on the dashboard:** `GET /inventory?status=low` gives the flat rows the mock returns. `GET /inventory/low-stock` returns nested inventory → variant → product.
+- **Deleting a product** archives it (`status: archived`) instead of removing it.
+- **Product edit:** `PUT /products/:id` takes the full `variants` list (with `id` for existing ones) and `images`. Removing a variant that has orders gives 409 with `details.skus`.
+- **Brand list:** `GET /brands?status=` is paginated.
+- **Order errors:** 409 includes `details.items: [{ sku, requested, available }]`, and 403 means the brand isn't approved yet.
+- **Password reset:** the email links to `APP_URL/reset-password?token=…`. The dashboard needs that page; it calls `POST /auth/reset-password`.
+- **Uploads:** `POST /uploads` (multipart `file`) returns `{ url }` to use as an `imageUrl`.
+- **Errors:** always `{ status: "error", message, details? }`. A wrong current password on `PUT /users/me/password` is a 400, not a 401.
 
 ---
 
