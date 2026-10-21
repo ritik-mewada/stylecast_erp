@@ -116,6 +116,8 @@ All settings are environment variables (see [`.env.example`](.env.example)):
 
 Registration always creates a `brand_owner` for a new brand in `pending` status. Invites can only assign brand roles.
 
+Rejecting a brand (or revoking its approval) marks it inactive (`isActive: false`). It keeps its data and its users can still sign in, but only approved brands can take orders. Approving it again reactivates it. Brands can't change `isActive` themselves.
+
 ---
 
 ## Endpoints
@@ -155,6 +157,8 @@ Errors are `{ "status": "error", "message": "…" }`, sometimes with `details`. 
 **Analytics.** Sales, best sellers and turnover leave out cancelled and refunded orders, since neither brought in money and both returned their stock. Conversion rate uses daily traffic recorded through `POST /analytics/traffic` (one row per brand per day).
 
 **Uploads.** Images are stored in Postgres (`bytea`, max 5 MB) rather than on disk, so they survive redeploys on hosts with ephemeral filesystems, with no object store needed. The type comes from the file's magic bytes; only JPEG, PNG, WebP and AVIF are accepted (no SVG). Images are served publicly by unguessable id and cached forever. At larger scale this would move to S3 or similar.
+
+**Emails.** Account emails are case-insensitive: sign-up, sign-in, invites, profile edits and password resets trim and lowercase the address, and a database check constraint keeps stored emails lowercase, so the unique constraint can't be dodged by case.
 
 **Password reset.** Links are single use and expire after an hour, and only a SHA-256 hash of the token is stored. `forgot-password` answers the same way whether or not the email exists, and sends the email after responding, so neither the message nor the timing reveals accounts. Login allows 10 failed attempts per IP per 15 minutes, and reset requests 5.
 
