@@ -4,6 +4,10 @@
  * All environment variables are resolved and validated here at module-load
  * time.  If a required variable is missing the process terminates immediately
  * with a clear message rather than failing silently later.
+ *
+ * Development falls back to local defaults. Production (NODE_ENV=production)
+ * refuses to start without explicit CORS origins and database credentials,
+ * and with a JWT secret shorter than 32 characters.
  */
 import "dotenv/config";
 
@@ -17,18 +21,38 @@ function parseTrustProxy(value: string | undefined): boolean | number | string {
   return value;
 }
 
+const NODE_ENV = process.env.NODE_ENV || "development";
+const IS_PRODUCTION = NODE_ENV === "production";
+
+function fail(message: string): never {
+  console.error(`❌  ${message}`);
+  process.exit(1);
+}
+
 function requireEnv(name: string): string {
+  return process.env[name] || fail(`Missing required environment variable: ${name}`);
+}
+
+// A local-development default that production must override explicitly.
+function devDefault(name: string, fallback: string): string {
   const value = process.env[name];
-  if (!value) {
-    console.error(`❌  Missing required environment variable: ${name}`);
-    process.exit(1);
+  if (value) return value;
+  if (IS_PRODUCTION) fail(`${name} must be set when NODE_ENV=production`);
+  return fallback;
+}
+
+// HMAC secrets are guessable offline from any issued token if they're short.
+function jwtSecret(): string {
+  const secret = requireEnv("JWT_SECRET");
+  if (IS_PRODUCTION && secret.length < 32) {
+    fail("JWT_SECRET must be at least 32 characters in production (e.g. openssl rand -base64 48)");
   }
-  return value;
+  return secret;
 }
 
 export const Config = {
   PORT: process.env.PORT || "3000",
-  NODE_ENV: process.env.NODE_ENV || "development",
+  NODE_ENV,
 
   // Proxy hops to trust for the client IP and protocol (see parseTrustProxy).
   TRUST_PROXY: parseTrustProxy(process.env.TRUST_PROXY),
@@ -40,18 +64,25 @@ export const Config = {
   DB_HOST: process.env.DB_HOST || "localhost",
   DB_PORT: Number(process.env.DB_PORT) || 5432,
   DB_USERNAME: process.env.DB_USERNAME || "postgres",
-  DB_PASSWORD: process.env.DB_PASSWORD || "root",
+  // Only needed without DATABASE_URL; production has no default password.
+  DB_PASSWORD: process.env.DATABASE_URL
+    ? process.env.DB_PASSWORD || ""
+    : devDefault("DB_PASSWORD", "root"),
   DB_NAME: process.env.DB_NAME || "stylecast_erp",
 
   // Auth
-  JWT_SECRET: requireEnv("JWT_SECRET"),
+  JWT_SECRET: jwtSecret(),
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || "1d",
 
   // Failed sign-in attempts allowed per IP per 15 minutes.
   LOGIN_RATE_LIMIT: Number(process.env.LOGIN_RATE_LIMIT) || 10,
 
-  // CORS – comma-separated list of allowed origins, e.g. "http://localhost:5173,https://app.stylecast.io"
-  ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS || "*",
+  // Sign-ups (new brands) allowed per IP per hour.
+  REGISTER_RATE_LIMIT: Number(process.env.REGISTER_RATE_LIMIT) || 10,
+
+  // CORS – comma-separated list of allowed origins, e.g. "http://localhost:5173,https://app.stylecast.io".
+  // Development allows any origin; production must list them (or say "*" explicitly).
+  ALLOWED_ORIGINS: devDefault("ALLOWED_ORIGINS", "*"),
 
   // Public base URL of this API (e.g. https://api.stylecast.example), used for
   // links to uploaded images. Optional: falls back to the request's host.

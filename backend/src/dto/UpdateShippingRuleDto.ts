@@ -1,4 +1,4 @@
-import { IsString, IsNumber, IsPositive, IsOptional } from "class-validator";
+import { IsString, IsNumber, IsPositive, IsOptional, Min } from "class-validator";
 
 export class UpdateShippingRuleDto {
   @IsOptional()
@@ -7,7 +7,7 @@ export class UpdateShippingRuleDto {
 
   @IsOptional()
   @IsNumber({}, { message: "shippingFee must be a number" })
-  @IsPositive({ message: "shippingFee must be a positive number" })
+  @Min(0, { message: "shippingFee cannot be negative" })
   shippingFee?: number;
 
   @IsOptional()

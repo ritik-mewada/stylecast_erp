@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { AuthController } from "../controllers/auth";
 import { validate } from "../middleware/validate";
-import { loginLimiter, passwordResetLimiter } from "../middleware/rateLimit";
+import { loginLimiter, passwordResetLimiter, registerLimiter } from "../middleware/rateLimit";
 import { RegisterDto } from "../dto/RegisterDto";
 import { LoginDto } from "../dto/LoginDto";
 import { ForgotPasswordDto } from "../dto/ForgotPasswordDto";
@@ -12,6 +12,7 @@ const authController = new AuthController();
 
 router.post(
   "/register",
+  registerLimiter,
   validate(RegisterDto),
   (req, res, next) => authController.register(req, res, next),
 );

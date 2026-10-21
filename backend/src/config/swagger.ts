@@ -122,7 +122,8 @@ export const swaggerDocument = {
       "List endpoints take `page` and `limit` (max 100) and return `{ data, pagination: { page, limit, total, totalPages } }`.",
       "",
       "## Rate limits",
-      "`POST /auth/login`: 10 failed attempts per IP per 15 minutes. `POST /auth/forgot-password`: 5 per IP per 15 minutes. Over the limit: 429.",
+      "`POST /auth/login`: 10 failed attempts per IP per 15 minutes. `POST /auth/forgot-password`: 5 per IP per 15 minutes. " +
+        "`POST /auth/register`: 10 per IP per hour. Over the limit: 429.",
     ].join("\n"),
   },
   servers: [{ url: "/api/v1", description: "This server" }],
@@ -537,8 +538,15 @@ export const swaggerDocument = {
         description: "Creates a brand (pending approval) and its brand_owner account.",
         required: ["brandName", "brandSlug", "firstName", "lastName", "email", "password"],
         properties: {
-          brandName: { type: "string", example: "Maison Ondine" },
-          brandSlug: { type: "string", example: "maison-ondine" },
+          brandName: { type: "string", example: "Maison Ondine", description: "Unique across brands, ignoring case" },
+          brandSlug: {
+            type: "string",
+            pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            minLength: 2,
+            maxLength: 60,
+            example: "maison-ondine",
+            description: "Trimmed and lowercased, then lowercase letters, numbers and single hyphens",
+          },
           companyInfo: { type: "string" },
           website: { type: "string" },
           shippingOrigin: { type: "string" },
@@ -604,8 +612,8 @@ export const swaggerDocument = {
         type: "object",
         description: "All fields optional. Approval status and the active flag can't be changed here.",
         properties: {
-          name: { type: "string" },
-          slug: { type: "string" },
+          name: { type: "string", minLength: 1, description: "Unique across brands, ignoring case" },
+          slug: { type: "string", pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$", minLength: 2, maxLength: 60 },
           companyInfo: { type: "string" },
           website: { type: "string" },
           shippingOrigin: { type: "string" },
@@ -733,7 +741,7 @@ export const swaggerDocument = {
         required: ["regionName", "shippingFee", "deliveryEstimate"],
         properties: {
           regionName: { type: "string", example: "United States" },
-          shippingFee: { type: "number", exclusiveMinimum: true, minimum: 0, example: 15 },
+          shippingFee: { type: "number", minimum: 0, example: 15, description: "0 for free shipping to this region" },
           freeShippingThreshold: { type: "number", exclusiveMinimum: true, minimum: 0, example: 200 },
           deliveryEstimate: { type: "string", example: "4–7 business days" },
         },
@@ -743,7 +751,7 @@ export const swaggerDocument = {
         description: "All fields optional.",
         properties: {
           regionName: { type: "string" },
-          shippingFee: { type: "number", exclusiveMinimum: true, minimum: 0 },
+          shippingFee: { type: "number", minimum: 0 },
           freeShippingThreshold: { type: "number", exclusiveMinimum: true, minimum: 0 },
           deliveryEstimate: { type: "string" },
         },
@@ -830,7 +838,7 @@ export const swaggerDocument = {
         requestBody: jsonBody("RegisterRequest"),
         responses: {
           "201": ok("Registered", ref("RegisterResponse")),
-          ...errors(400, 409),
+          ...errors(400, 409, 429),
         },
       },
     },

@@ -69,22 +69,26 @@ export class BrandService {
       throw new AppError(404, "Brand not found");
     }
 
+    // Another brand with this slug or name (in any case)? Changing only the
+    // case of your own name is fine.
     if (data.slug && data.slug !== brand.slug) {
-      const existingSlug = await this.brandRepository.findOne({
-        where: { slug: data.slug },
+      const slugTaken = await this.brandRepository.exists({
+        where: { slug: data.slug, id: Not(brandId) },
       });
 
-      if (existingSlug) {
+      if (slugTaken) {
         throw new AppError(409, "Slug is already in use");
       }
     }
 
     if (data.name && data.name !== brand.name) {
-      const existingName = await this.brandRepository.findOne({
-        where: { name: data.name },
-      });
+      const nameTaken = await this.brandRepository
+        .createQueryBuilder("brand")
+        .where("LOWER(brand.name) = LOWER(:name)", { name: data.name })
+        .andWhere("brand.id != :brandId", { brandId })
+        .getExists();
 
-      if (existingName) {
+      if (nameTaken) {
         throw new AppError(409, "Brand name is already in use");
       }
     }

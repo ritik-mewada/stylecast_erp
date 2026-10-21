@@ -4,6 +4,7 @@ import {
   IsNumber,
   IsPositive,
   IsOptional,
+  Min,
 } from "class-validator";
 
 export class CreateShippingRuleDto {
@@ -11,8 +12,9 @@ export class CreateShippingRuleDto {
   @IsNotEmpty({ message: "regionName is required" })
   regionName!: string;
 
+  // 0 is allowed: a region can ship for free.
   @IsNumber({}, { message: "shippingFee must be a number" })
-  @IsPositive({ message: "shippingFee must be a positive number" })
+  @Min(0, { message: "shippingFee cannot be negative" })
   shippingFee!: number;
 
   @IsOptional()

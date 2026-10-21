@@ -1,11 +1,15 @@
-import { IsString, IsEmail, IsOptional } from "class-validator";
+import { IsString, IsEmail, IsNotEmpty, IsOptional } from "class-validator";
+import { NormalizeSlug, Trim } from "./normalize";
 
 export class UpdateBrandDto {
   @IsOptional()
+  @Trim()
   @IsString()
+  @IsNotEmpty({ message: "name cannot be empty" })
   name?: string;
 
   @IsOptional()
+  @NormalizeSlug("slug")
   @IsString()
   slug?: string;
 

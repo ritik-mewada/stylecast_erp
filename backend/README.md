@@ -87,18 +87,19 @@ ADMIN_EMAIL=you@example.com ADMIN_PASSWORD='a-long-password' npm run create-admi
 
 ## Configuration
 
-All settings are environment variables (see [`.env.example`](.env.example)):
+All settings are environment variables (see [`.env.example`](.env.example)). With `NODE_ENV=production` the server refuses to start unless `ALLOWED_ORIGINS` and database credentials (`DATABASE_URL` or `DB_PASSWORD`) are set and `JWT_SECRET` is at least 32 characters; development falls back to the defaults below.
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `JWT_SECRET` | *(required)* | Signs tokens. The app won't start without it. |
+| `JWT_SECRET` | *(required)* | Signs tokens. The app won't start without it; production needs 32+ characters (`openssl rand -base64 48`). |
 | `JWT_EXPIRES_IN` | `1d` | Token lifetime |
 | `PORT`, `NODE_ENV` | `3000`, `development` | |
 | `DATABASE_URL` | | Full connection string; wins over `DB_*`. Add `?sslmode=require` for TLS. |
-| `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD`, `DB_NAME` | `localhost`, `5432`, `postgres`, `root`, `stylecast_erp` | |
-| `ALLOWED_ORIGINS` | `*` | Comma-separated CORS origins (e.g. `http://localhost:5173`) |
+| `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD`, `DB_NAME` | `localhost`, `5432`, `postgres`, `root`, `stylecast_erp` | The `root` password default is development-only |
+| `ALLOWED_ORIGINS` | `*` in development | Comma-separated CORS origins (e.g. `http://localhost:5173`). Required in production. |
 | `TRUST_PROXY` | off | Proxy hops to trust (`1` behind a load balancer) for client IP and protocol |
 | `LOGIN_RATE_LIMIT` | `10` | Failed sign-ins allowed per IP per 15 minutes |
+| `REGISTER_RATE_LIMIT` | `10` | Sign-ups allowed per IP per hour |
 | `PUBLIC_URL` | request host | Base URL used in uploaded-image links |
 | `APP_URL` | `http://localhost:5173` | Dashboard URL used in password-reset emails |
 | `SMTP_URL`, `MAIL_FROM` | | Outgoing email. Without `SMTP_URL`, development prints emails to the console and production skips them. |
@@ -158,9 +159,9 @@ Errors are `{ "status": "error", "message": "…" }`, sometimes with `details`. 
 
 **Uploads.** Images are stored in Postgres (`bytea`, max 5 MB) rather than on disk, so they survive redeploys on hosts with ephemeral filesystems, with no object store needed. The type comes from the file's magic bytes; only JPEG, PNG, WebP and AVIF are accepted (no SVG). Images are served publicly by unguessable id and cached forever. At larger scale this would move to S3 or similar.
 
-**Emails.** Account emails are case-insensitive: sign-up, sign-in, invites, profile edits and password resets trim and lowercase the address, and a database check constraint keeps stored emails lowercase, so the unique constraint can't be dodged by case.
+**Emails, slugs and brand names.** Account emails are case-insensitive: sign-up, sign-in, invites, profile edits and password resets trim and lowercase the address, and a database check constraint keeps stored emails lowercase, so the unique constraint can't be dodged by case. Brand slugs work the same way and must be 2–60 lowercase letters, numbers and single hyphens. Brand names keep their display case but are unique ignoring it (a unique index on `lower(name)`).
 
-**Password reset.** Links are single use and expire after an hour, and only a SHA-256 hash of the token is stored. `forgot-password` answers the same way whether or not the email exists, and sends the email after responding, so neither the message nor the timing reveals accounts. Login allows 10 failed attempts per IP per 15 minutes, and reset requests 5.
+**Password reset.** Links are single use and expire after an hour, and only a SHA-256 hash of the token is stored. `forgot-password` answers the same way whether or not the email exists, and sends the email after responding, so neither the message nor the timing reveals accounts. Login checks a dummy password hash when the email is unknown, so a wrong email takes as long as a wrong password. Per IP, login allows 10 failed attempts per 15 minutes, reset requests 5 per 15 minutes, and sign-ups 10 per hour.
 
 **Schema.** Migrations only (`synchronize: false`). Prices are `numeric(10,2)` columns, returned as JSON numbers.
 
@@ -174,10 +175,12 @@ The API runs on any Node host with managed Postgres (Render, Railway, Fly, …):
 |---|---|
 | Root directory | `backend` |
 | Build command | `npm ci && npm run build` |
-| Start command | `npm run start:prod` (applies pending migrations, then starts) |
+| Start command | `npm run start:prod` (applies pending migrations, then starts; SIGTERM shuts down gracefully) |
 | Health check path | `/health` |
-| Environment | `NODE_ENV=production`, `JWT_SECRET` (long and random), `DATABASE_URL`, `TRUST_PROXY=1`, `ALLOWED_ORIGINS` (dashboard origin), `APP_URL`, optionally `SMTP_URL` |
+| Environment | `NODE_ENV=production`, `JWT_SECRET` (32+ random characters), `DATABASE_URL`, `ALLOWED_ORIGINS` (dashboard origin), `TRUST_PROXY=1`, `APP_URL`, optionally `SMTP_URL` |
 
 After the first deploy, create an admin with `npm run create-admin`, or load the demo with `npm run seed:prod`, from the host's shell. Seeded accounts, including the admin, share one known password (`SEED_PASSWORD`, default `password`). Only seed a public demo, never a real production database.
+
+On SIGTERM (a redeploy) the server stops taking connections, finishes in-flight requests, closes the database pool and exits, within 10 seconds at most.
 
 Rate-limit counters are kept in memory, so they're per instance. Running several instances would need a shared store such as Redis.

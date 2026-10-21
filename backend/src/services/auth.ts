@@ -14,6 +14,10 @@ import { sendMail } from "../utils/mailer";
 
 const RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour
 
+// Checked against when an email has no account, so an unknown email takes as
+// long as a wrong password and response times don't reveal which emails exist.
+const DUMMY_PASSWORD_HASH = bcrypt.hash("no-such-account", 10);
+
 const hashToken = (token: string) =>
   crypto.createHash("sha256").update(token).digest("hex");
 
@@ -23,9 +27,12 @@ export class AuthService {
   private resetTokenRepository = AppDataSource.getRepository(PasswordResetToken);
 
   async register(data: RegisterInput) {
-    const existingBrand = await this.brandRepository.findOne({
-      where: [{ name: data.brandName }, { slug: data.brandSlug }],
-    });
+    // Slugs are already lowercase; names are unique regardless of case.
+    const existingBrand = await this.brandRepository
+      .createQueryBuilder("brand")
+      .where("LOWER(brand.name) = LOWER(:name)", { name: data.brandName })
+      .orWhere("brand.slug = :slug", { slug: data.brandSlug })
+      .getExists();
 
     if (existingBrand) {
       throw new AppError(409, "A brand with this name or slug already exists");
@@ -92,13 +99,12 @@ export class AuthService {
       relations: ["brand"],
     });
 
-    if (!user) {
-      throw new AppError(401, "Invalid email or password");
-    }
+    const isPasswordValid = await bcrypt.compare(
+      data.password,
+      user?.password ?? (await DUMMY_PASSWORD_HASH),
+    );
 
-    const isPasswordValid = await bcrypt.compare(data.password, user.password);
-
-    if (!isPasswordValid) {
+    if (!user || !isPasswordValid) {
       throw new AppError(401, "Invalid email or password");
     }
 

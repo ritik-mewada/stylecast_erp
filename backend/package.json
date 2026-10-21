@@ -3,11 +3,14 @@
   "version": "1.0.0",
   "description": "",
   "main": "dist/server.js",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "nodemon src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "start:prod": "typeorm migration:run -d dist/data-source.js && node dist/server.js",
+    "start:prod": "typeorm migration:run -d dist/data-source.js && exec node dist/server.js",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "create-admin": "ts-node src/scripts/create-admin.ts",
@@ -56,7 +59,6 @@
     "nodemon": "^3.1.14",
     "prettier": "^3.8.1",
     "ts-node": "^10.9.2",
-    "ts-node-dev": "^2.0.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.71.1"
   }
