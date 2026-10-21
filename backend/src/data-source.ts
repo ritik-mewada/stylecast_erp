@@ -28,11 +28,15 @@ import { TrafficMetric } from "./entity/TrafficMetric";
 
 export const AppDataSource = new DataSource({
   type: "postgres",
-  host: Config.DB_HOST,
-  port: Config.DB_PORT,
-  username: Config.DB_USERNAME,
-  password: Config.DB_PASSWORD,
-  database: Config.DB_NAME,
+  ...(Config.DATABASE_URL
+    ? { url: Config.DATABASE_URL }
+    : {
+        host: Config.DB_HOST,
+        port: Config.DB_PORT,
+        username: Config.DB_USERNAME,
+        password: Config.DB_PASSWORD,
+        database: Config.DB_NAME,
+      }),
   synchronize: false,
   logging: ["error"],
   entities: [
