@@ -7,6 +7,15 @@ import { OrderStatus } from "../entity/Order";
 const orderService = new OrderService();
 
 export class OrderController {
+  async create(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const result = await orderService.createOrder(getBrandId(req), req.body);
+      res.status(201).json(result);
+    } catch (err) {
+      next(err);
+    }
+  }
+
   async getAll(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const { page, limit, status } = req.query;
