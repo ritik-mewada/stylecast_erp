@@ -58,6 +58,8 @@ export class Brand {
   })
   approvalStatus!: BrandApprovalStatus;
 
+  // False while the brand is rejected; set by the platform admin's approval
+  // decision, never by the brand itself.
   @Column({ default: true })
   isActive!: boolean;
 

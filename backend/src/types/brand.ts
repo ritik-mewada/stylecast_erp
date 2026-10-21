@@ -1,7 +1,7 @@
 // Type definition for updating a brand's profile. All fields are optional since
-// you might only want to update one or two things at a time. Approval status is
-// not part of the profile: only a platform admin can change it, through
-// PATCH /brands/:id/approval.
+// you might only want to update one or two things at a time. Approval status
+// and the active flag are not part of the profile: only a platform admin
+// changes them, through PATCH /brands/:id/approval.
 
 export interface UpdateBrandInput {
   name?: string;
@@ -12,5 +12,4 @@ export interface UpdateBrandInput {
   brandCategory?: string;
   contactEmail?: string;
   contactPhone?: string;
-  isActive?: boolean;
 }

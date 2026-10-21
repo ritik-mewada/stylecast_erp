@@ -1,4 +1,4 @@
-import { IsString, IsEmail, IsBoolean, IsOptional } from "class-validator";
+import { IsString, IsEmail, IsOptional } from "class-validator";
 
 export class UpdateBrandDto {
   @IsOptional()
@@ -32,8 +32,4 @@ export class UpdateBrandDto {
   @IsOptional()
   @IsString()
   contactPhone?: string;
-
-  @IsOptional()
-  @IsBoolean()
-  isActive?: boolean;
 }

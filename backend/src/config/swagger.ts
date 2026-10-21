@@ -195,7 +195,7 @@ export const swaggerDocument = {
           contactEmail: nullableString,
           contactPhone: nullableString,
           approvalStatus: ref("BrandApprovalStatus"),
-          isActive: { type: "boolean" },
+          isActive: { type: "boolean", description: "false while the brand is rejected" },
           ...timestamps,
         },
       },
@@ -602,7 +602,7 @@ export const swaggerDocument = {
       },
       UpdateBrandRequest: {
         type: "object",
-        description: "All fields optional. Approval status can't be changed here.",
+        description: "All fields optional. Approval status and the active flag can't be changed here.",
         properties: {
           name: { type: "string" },
           slug: { type: "string" },
@@ -612,7 +612,6 @@ export const swaggerDocument = {
           brandCategory: { type: "string" },
           contactEmail: { type: "string", format: "email" },
           contactPhone: { type: "string" },
-          isActive: { type: "boolean" },
         },
       },
       UpdateApprovalRequest: {
@@ -998,7 +997,9 @@ export const swaggerDocument = {
         tags: ["Brands"],
         operationId: "setBrandApproval",
         summary: "Approve or reject a brand (platform admin)",
-        description: "Roles: `platform_admin`. Only approved brands can take orders.",
+        description:
+          "Roles: `platform_admin`. Only approved brands can take orders. Rejecting marks the brand inactive; " +
+          "it keeps its data and can still sign in. Approving again reactivates it.",
         parameters: [uuidParam()],
         requestBody: jsonBody("UpdateApprovalRequest"),
         responses: {
