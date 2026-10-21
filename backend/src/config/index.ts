@@ -34,6 +34,10 @@ export const Config = {
   // CORS – comma-separated list of allowed origins, e.g. "http://localhost:5173,https://app.stylecast.io"
   ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS || "*",
 
+  // Public base URL of this API (e.g. https://api.stylecast.example), used for
+  // links to uploaded images. Optional: falls back to the request's host.
+  PUBLIC_URL: (process.env.PUBLIC_URL || "").replace(/\/+$/, ""),
+
   // Dashboard base URL, used to build links in emails (password reset).
   APP_URL: (process.env.APP_URL || "http://localhost:5173").replace(/\/+$/, ""),
 

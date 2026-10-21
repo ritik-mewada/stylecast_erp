@@ -20,6 +20,7 @@ import inventoryRoutes from "./routes/inventory";
 import orderRoutes from "./routes/order";
 import shippingRoutes from "./routes/shipping";
 import analyticsRoutes from "./routes/analytics";
+import uploadRoutes from "./routes/upload";
 import { setupSwagger } from "./config/swagger";
 import { AppError } from "./utils/AppError";
 
@@ -73,6 +74,7 @@ app.use("/api/v1/inventory", inventoryRoutes);
 app.use("/api/v1/orders", orderRoutes);
 app.use("/api/v1/shipping", shippingRoutes);
 app.use("/api/v1/analytics", analyticsRoutes);
+app.use("/api/v1/uploads", uploadRoutes);
 
 // ─── Swagger ─────────────────────────────────────────────────────────────────
 
