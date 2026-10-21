@@ -3,9 +3,9 @@ import {
   IsNotEmpty,
   IsEmail,
   MinLength,
-  IsEnum,
+  IsIn,
 } from "class-validator";
-import { UserRole } from "../utils";
+import { BRAND_ROLES, UserRole } from "../utils";
 
 export class CreateUserDto {
   @IsString()
@@ -23,6 +23,6 @@ export class CreateUserDto {
   @MinLength(8, { message: "password must be at least 8 characters" })
   password!: string;
 
-  @IsEnum(UserRole, { message: "role must be one of: brand_owner, brand_manager, operations_manager" })
+  @IsIn(BRAND_ROLES, { message: `role must be one of: ${BRAND_ROLES.join(", ")}` })
   role!: UserRole;
 }

@@ -28,32 +28,35 @@ export class AuthService {
       throw new AppError(409, "A user with this email already exists");
     }
 
-    const brand = this.brandRepository.create({
-      name: data.brandName,
-      slug: data.brandSlug,
-      companyInfo: data.companyInfo || "",
-      website: data.website || "",
-      shippingOrigin: data.shippingOrigin || "",
-      brandCategory: data.brandCategory || "",
-      contactEmail: data.contactEmail || "",
-      contactPhone: data.contactPhone || "",
-      isActive: true,
-    });
-
-    await this.brandRepository.save(brand);
-
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
-    const user = this.userRepository.create({
-      firstName: data.firstName,
-      lastName: data.lastName,
-      email: data.email,
-      password: hashedPassword,
-      role: data.role || UserRole.BRAND_OWNER,
-      brandId: brand.id,
-    });
+    // Brand and owner are created together, or not at all.
+    const { brand, user } = await AppDataSource.transaction(async (m) => {
+      const brand = m.create(Brand, {
+        name: data.brandName,
+        slug: data.brandSlug,
+        companyInfo: data.companyInfo || "",
+        website: data.website || "",
+        shippingOrigin: data.shippingOrigin || "",
+        brandCategory: data.brandCategory || "",
+        contactEmail: data.contactEmail || "",
+        contactPhone: data.contactPhone || "",
+        isActive: true,
+      });
+      await m.save(brand);
 
-    await this.userRepository.save(user);
+      const user = m.create(User, {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        password: hashedPassword,
+        role: UserRole.BRAND_OWNER,
+        brandId: brand.id,
+      });
+      await m.save(user);
+
+      return { brand, user };
+    });
 
     const token = generateToken(user);
 

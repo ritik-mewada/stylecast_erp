@@ -1,5 +1,6 @@
 import { Response, NextFunction } from "express";
 import { AuthRequest } from "../middleware/auth";
+import { getBrandId } from "../utils/brand";
 import { OrderService } from "../services/order";
 import { OrderStatus } from "../entity/Order";
 
@@ -10,7 +11,7 @@ export class OrderController {
     try {
       const { page, limit, status } = req.query;
       const result = await orderService.getOrders(
-        req.user!.brandId,
+        getBrandId(req),
         Number(page) || 1,
         Number(limit) || 20,
         status as OrderStatus | undefined,
@@ -25,7 +26,7 @@ export class OrderController {
     try {
       const result = await orderService.getOrderById(
         String(req.params.id),
-        req.user!.brandId,
+        getBrandId(req),
       );
       res.status(200).json(result);
     } catch (err) {
@@ -37,7 +38,7 @@ export class OrderController {
     try {
       const result = await orderService.updateOrderStatus(
         String(req.params.id),
-        req.user!.brandId,
+        getBrandId(req),
         req.body.orderStatus,
       );
       res.status(200).json({
@@ -53,7 +54,7 @@ export class OrderController {
     try {
       const result = await orderService.processRefund(
         String(req.params.id),
-        req.user!.brandId,
+        getBrandId(req),
       );
       res.status(200).json(result);
     } catch (err) {

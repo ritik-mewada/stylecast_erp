@@ -7,9 +7,9 @@
  * Validates req.body against the given class-validator DTO class.
  * Returns 400 with structured field errors if validation fails.
  */
-import { RequestHandler } from "express";
+import { NextFunction, Request, RequestHandler, Response } from "express";
 import { ClassConstructor, plainToInstance } from "class-transformer";
-import { validate as cvValidate } from "class-validator";
+import { isUUID, validate as cvValidate } from "class-validator";
 import { AppError } from "../utils/AppError";
 
 export function validate<T extends object>(
@@ -34,3 +34,25 @@ export function validate<T extends object>(
     next();
   };
 }
+
+/**
+ * Route-param validator for UUID ids.
+ *
+ * Usage:
+ *   router.param("id", uuidParam);
+ *
+ * Rejects malformed ids with 400 before they reach Postgres, which would
+ * otherwise fail the query with a 500.
+ */
+export const uuidParam = (
+  _req: Request,
+  _res: Response,
+  next: NextFunction,
+  value: unknown,
+  name: string,
+): void => {
+  if (!isUUID(String(value))) {
+    return next(new AppError(400, `${name} must be a valid UUID`));
+  }
+  next();
+};

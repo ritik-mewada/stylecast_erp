@@ -1,5 +1,6 @@
 import { Response, NextFunction } from "express";
 import { AuthRequest } from "../middleware/auth";
+import { getBrandId } from "../utils/brand";
 import { AnalyticsService } from "../services/analytics";
 
 const analyticsService = new AnalyticsService();
@@ -9,7 +10,7 @@ export class AnalyticsController {
     try {
       const range = req.query.range as string | undefined;
       const result = await analyticsService.getOverview(
-        req.user!.brandId,
+        getBrandId(req),
         range,
       );
       res.status(200).json(result);
@@ -23,7 +24,7 @@ export class AnalyticsController {
       const limit = Number(req.query.limit) || 5;
       const range = req.query.range as string | undefined;
       const result = await analyticsService.getTopProducts(
-        req.user!.brandId,
+        getBrandId(req),
         limit,
         range,
       );
@@ -36,7 +37,7 @@ export class AnalyticsController {
   async lowStock(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const result = await analyticsService.getLowStockSummary(
-        req.user!.brandId,
+        getBrandId(req),
       );
       res.status(200).json(result);
     } catch (err) {
@@ -48,7 +49,7 @@ export class AnalyticsController {
     try {
       const range = req.query.range as string | undefined;
       const result = await analyticsService.getOrderStatusSummary(
-        req.user!.brandId,
+        getBrandId(req),
         range,
       );
       res.status(200).json(result);
@@ -65,7 +66,7 @@ export class AnalyticsController {
     try {
       const range = req.query.range as string | undefined;
       const result = await analyticsService.getInventoryTurnover(
-        req.user!.brandId,
+        getBrandId(req),
         range,
       );
       res.status(200).json(result);
@@ -78,7 +79,7 @@ export class AnalyticsController {
     try {
       const range = req.query.range as string | undefined;
       const result = await analyticsService.getConversionRate(
-        req.user!.brandId,
+        getBrandId(req),
         range,
       );
       res.status(200).json(result);

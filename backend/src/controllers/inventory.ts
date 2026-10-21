@@ -1,6 +1,7 @@
 import { Response, NextFunction } from "express";
 import { InventoryService } from "../services/inventory";
 import { AuthRequest } from "../middleware/auth";
+import { getBrandId } from "../utils/brand";
 
 const inventoryService = new InventoryService();
 
@@ -35,7 +36,7 @@ export class InventoryController {
   async lowStock(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const result = await inventoryService.getLowStockItems(
-        req.user!.brandId,
+        getBrandId(req),
       );
       res.status(200).json(result);
     } catch (err) {

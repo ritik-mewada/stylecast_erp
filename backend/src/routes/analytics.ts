@@ -2,16 +2,12 @@ import { Router } from "express";
 import { AnalyticsController } from "../controllers/analytics";
 import { authenticate } from "../middleware/auth";
 import { authorizeRoles } from "../middleware/role";
-import { UserRole } from "../utils";
+import { BRAND_ROLES } from "../utils";
 
 const router = Router();
 const controller = new AnalyticsController();
 
-const allRoles = [
-  UserRole.BRAND_OWNER,
-  UserRole.BRAND_MANAGER,
-  UserRole.OPERATIONS_MANAGER,
-];
+const allRoles = BRAND_ROLES;
 
 router.get(
   "/overview",

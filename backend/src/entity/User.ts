@@ -1,6 +1,7 @@
-// Represents a user account in the system. Every user belongs to a brand and
-// has a role (owner, manager, operations) that controls what they're allowed
-// to do. Passwords are stored hashed — never in plaintext.
+// Represents a user account in the system. Brand users belong to a brand and
+// have a role (owner, manager, operations) that controls what they're allowed
+// to do. Platform admins have no brand (brandId is null). Passwords are stored
+// hashed — never in plaintext.
 
 import {
   Entity,
@@ -38,12 +39,15 @@ export class User {
   })
   role!: UserRole;
 
-  @Column()
-  brandId!: string;
+  @Column({ type: "uuid", nullable: true })
+  brandId!: string | null;
 
-  @ManyToOne(() => Brand, (brand) => brand.users, { onDelete: "CASCADE" })
+  @ManyToOne(() => Brand, (brand) => brand.users, {
+    onDelete: "CASCADE",
+    nullable: true,
+  })
   @JoinColumn({ name: "brandId" })
-  brand!: Brand;
+  brand!: Brand | null;
 
   @CreateDateColumn()
   createdAt!: Date;

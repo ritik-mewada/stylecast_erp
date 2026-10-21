@@ -2,12 +2,16 @@
  * Central error-handling middleware.
  *
  * Placed after all routes in app.ts.  Catches anything passed to `next(err)`:
- *  - AppError instances  → use their statusCode + message (operational errors).
+ *  - AppError instances  → use their statusCode + message (operational errors),
+ *                          plus `details` when the error carries them.
+ *  - Postgres unique violations (a race the service checks missed) → 409.
+ *  - Postgres invalid input (e.g. a bad enum value in a query string) → 400.
  *  - Unknown errors      → 500 Internal Server Error (bugs / unexpected failures).
  *
  * In production the raw error detail is not leaked to the client.
  */
 import { Request, Response, NextFunction } from "express";
+import { QueryFailedError } from "typeorm";
 import { AppError } from "../utils/AppError";
 import { Config } from "../config";
 
@@ -24,8 +28,24 @@ export const globalErrorHandler = (
     res.status(err.statusCode).json({
       status: "error",
       message: err.message,
+      ...(err.details && { details: err.details }),
     });
     return;
+  }
+
+  if (err instanceof QueryFailedError) {
+    const code = (err.driverError as { code?: string } | undefined)?.code;
+    if (code === "23505") {
+      res.status(409).json({
+        status: "error",
+        message: "A record with these details already exists",
+      });
+      return;
+    }
+    if (code === "22P02") {
+      res.status(400).json({ status: "error", message: "Invalid value in request" });
+      return;
+    }
   }
 
   // Unknown / unexpected error
