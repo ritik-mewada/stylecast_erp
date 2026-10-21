@@ -14,7 +14,7 @@ import { User } from "./User";
 import { Product } from "./Product";
 import { Order } from "./Order";
 import { ShippingRule } from "./ShippingRule";
-import { TrafficMetric } from "./TrafficMatric";
+import { TrafficMetric } from "./TrafficMetric";
 
 export enum BrandApprovalStatus {
   PENDING = "pending",

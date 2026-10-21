@@ -2,14 +2,19 @@
   "name": "stylecast_erp_backend",
   "version": "1.0.0",
   "description": "",
-  "main": "server.ts",
+  "main": "dist/server.js",
   "scripts": {
     "dev": "nodemon src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
     "typecheck": "tsc --noEmit",
-    "migration:generate": "npx typeorm-ts-node-commonjs migration:generate -d src/data-source.ts",
-    "migration:run": "npx typeorm-ts-node-commonjs migration:run -d src/data-source.ts"
+    "create-admin": "ts-node src/scripts/create-admin.ts",
+    "migration:generate": "typeorm-ts-node-commonjs migration:generate -d src/data-source.ts",
+    "migration:create": "typeorm-ts-node-commonjs migration:create",
+    "migration:run": "typeorm-ts-node-commonjs migration:run -d src/data-source.ts",
+    "migration:revert": "typeorm-ts-node-commonjs migration:revert -d src/data-source.ts",
+    "migration:show": "typeorm-ts-node-commonjs migration:show -d src/data-source.ts",
+    "migration:run:prod": "typeorm migration:run -d dist/data-source.js"
   },
   "keywords": [],
   "author": "",
@@ -38,10 +43,10 @@
     "@types/node": "^25.4.0",
     "@types/swagger-ui-express": "^4.1.8",
     "eslint": "^10.0.3",
+    "nodemon": "^3.1.14",
     "prettier": "^3.8.1",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
-    "typeorm-ts-node-commonjs": "^0.3.20",
     "typescript": "^5.9.3"
   }
 }

@@ -8,7 +8,7 @@ import { Order, OrderStatus } from "../entity/Order";
 import { OrderItem } from "../entity/OrderItem";
 import { Product, ProductStatus } from "../entity/Product";
 import { Inventory } from "../entity/Inventory";
-import { TrafficMetric } from "../entity/TrafficMatric";
+import { TrafficMetric } from "../entity/TrafficMetric";
 import { getRangeStartDate } from "../utils/analytics-range";
 
 export class AnalyticsService {
