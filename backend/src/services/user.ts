@@ -44,13 +44,7 @@ export class UserService {
 
     await this.userRepository.save(user);
 
-    return {
-      id: user.id,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      role: user.role,
-    };
+    return toPublicUser(user);
   }
 
   async getUsers(brandId: string) {

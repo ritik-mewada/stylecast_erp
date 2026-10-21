@@ -45,6 +45,9 @@ const now = Date.now();
 const daysAgo = (days: number, hours = 0) =>
   new Date(now - days * 86_400_000 - hours * 3_600_000);
 const isoDate = (date: Date) => date.toISOString().slice(0, 10);
+// "Chloé Gagnon" → "chloe": plain ASCII, so it passes the API's own email validation.
+const emailName = (fullName: string) =>
+  fullName.split(" ")[0].normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
 const OTHER_BRANDS = [
   {
@@ -303,7 +306,7 @@ const seed = async (m: EntityManager, passwordHash: string) => {
       m.create(Order, {
         brandId: brand.id,
         customerName,
-        customerEmail: `${customerName.split(" ")[0].toLowerCase()}@mail.example`,
+        customerEmail: `${emailName(customerName)}@mail.example`,
         shippingCountry: country,
         shippingCity: city,
         shippingPostalCode: postal,
