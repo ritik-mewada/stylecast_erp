@@ -12,6 +12,13 @@ const controller = new InventoryController();
 router.param("variantId", uuidParam);
 
 router.get(
+  "/",
+  authenticate,
+  authorizeRoles(...BRAND_ROLES),
+  (req, res, next) => controller.list(req, res, next),
+);
+
+router.get(
   "/variant/:variantId",
   authenticate,
   authorizeRoles(...BRAND_ROLES),

@@ -3,7 +3,7 @@
 // affected inventory rows (SELECT ... FOR UPDATE), always in variantId order,
 // so concurrent orders can't oversell and can't deadlock each other.
 
-import { EntityManager } from "typeorm";
+import { Brackets, EntityManager } from "typeorm";
 import { AppDataSource } from "../data-source";
 import { Brand, BrandApprovalStatus } from "../entity/Brand";
 import { Inventory } from "../entity/Inventory";
@@ -11,8 +11,9 @@ import { Order, OrderStatus, PaymentStatus } from "../entity/Order";
 import { OrderItem } from "../entity/OrderItem";
 import { ProductStatus } from "../entity/Product";
 import { ProductVariant } from "../entity/ProductVariant";
-import { CreateOrderInput } from "../types/order";
+import { CreateOrderInput, OrderListFilters } from "../types/order";
 import { AppError } from "../utils/AppError";
+import { escapeLike, likePattern, paginated, parsePagination } from "../utils/pagination";
 
 // Next statuses allowed by PATCH /orders/:id/status. Refunds have their own
 // endpoint and are allowed from any status except refunded.
@@ -39,12 +40,11 @@ export class OrderService {
 
   async getOrders(
     brandId: string,
-    page = 1,
-    limit = 20,
-    status?: OrderStatus,
+    page: unknown,
+    limit: unknown,
+    filters: OrderListFilters = {},
   ) {
-    const safePage = Math.max(Number(page) || 1, 1);
-    const safeLimit = Math.min(Math.max(Number(limit) || 20, 1), 100);
+    const p = parsePagination(page, limit);
 
     const query = this.orderRepository
       .createQueryBuilder("order")
@@ -53,24 +53,37 @@ export class OrderService {
       .leftJoinAndSelect("items.variant", "variant")
       .where("order.brandId = :brandId", { brandId })
       .orderBy("order.createdAt", "DESC")
-      .skip((safePage - 1) * safeLimit)
-      .take(safeLimit);
+      .skip(p.skip)
+      .take(p.limit);
 
-    if (status) {
-      query.andWhere("order.orderStatus = :status", { status });
+    if (filters.status) {
+      query.andWhere("order.orderStatus = :status", { status: filters.status });
+    }
+
+    if (filters.paymentStatus) {
+      query.andWhere("order.paymentStatus = :paymentStatus", {
+        paymentStatus: filters.paymentStatus,
+      });
+    }
+
+    // Customer name or email (contains), or the start of the order id, so
+    // "#3f9a" finds the order shown as #3F9A… in the dashboard.
+    if (filters.search) {
+      const term = filters.search.replace(/^#/, "");
+      query.andWhere(
+        new Brackets((qb) =>
+          qb
+            .where("order.customerName ILIKE :contains")
+            .orWhere("order.customerEmail ILIKE :contains")
+            .orWhere("CAST(order.id AS text) ILIKE :prefix"),
+        ),
+        { contains: likePattern(term), prefix: `${escapeLike(term)}%` },
+      );
     }
 
     const [orders, total] = await query.getManyAndCount();
 
-    return {
-      data: orders,
-      pagination: {
-        page: safePage,
-        limit: safeLimit,
-        total,
-        totalPages: Math.ceil(total / safeLimit),
-      },
-    };
+    return paginated(orders, total, p.page, p.limit);
   }
 
   async getOrderById(orderId: string, brandId: string) {

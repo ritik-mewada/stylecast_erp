@@ -2,7 +2,8 @@ import { Response, NextFunction } from "express";
 import { AuthRequest } from "../middleware/auth";
 import { getBrandId } from "../utils/brand";
 import { OrderService } from "../services/order";
-import { OrderStatus } from "../entity/Order";
+import { OrderStatus, PaymentStatus } from "../entity/Order";
+import { enumQuery, stringQuery } from "../utils/query";
 
 const orderService = new OrderService();
 
@@ -18,13 +19,12 @@ export class OrderController {
 
   async getAll(req: AuthRequest, res: Response, next: NextFunction) {
     try {
-      const { page, limit, status } = req.query;
-      const result = await orderService.getOrders(
-        getBrandId(req),
-        Number(page) || 1,
-        Number(limit) || 20,
-        status as OrderStatus | undefined,
-      );
+      const { page, limit, status, paymentStatus, search } = req.query;
+      const result = await orderService.getOrders(getBrandId(req), page, limit, {
+        status: enumQuery(status, OrderStatus, "status"),
+        paymentStatus: enumQuery(paymentStatus, PaymentStatus, "paymentStatus"),
+        search: stringQuery(search),
+      });
       res.status(200).json(result);
     } catch (err) {
       next(err);

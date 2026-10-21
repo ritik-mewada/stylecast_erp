@@ -41,7 +41,7 @@ export class UserService {
   async getUsers(brandId: string) {
     return this.userRepository.find({
       where: { brandId },
-      select: ["id", "firstName", "lastName", "email", "role", "createdAt"],
+      select: ["id", "firstName", "lastName", "email", "role", "brandId", "createdAt", "updatedAt"],
       order: { createdAt: "DESC" },
     });
   }

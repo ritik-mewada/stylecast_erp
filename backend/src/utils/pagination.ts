@@ -25,5 +25,7 @@ export const paginated = <T>(data: T[], total: number, page: number, limit: numb
 });
 
 // Escapes LIKE/ILIKE wildcards so a search for "50%" matches the literal text.
-export const likePattern = (term: string) =>
-  `%${term.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
+export const escapeLike = (term: string) => term.replace(/[\\%_]/g, (c) => `\\${c}`);
+
+// "contains" pattern for ILIKE searches.
+export const likePattern = (term: string) => `%${escapeLike(term)}%`;

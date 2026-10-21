@@ -3,6 +3,7 @@ import { ProductService } from "../services/product";
 import { AuthRequest } from "../middleware/auth";
 import { getBrandId } from "../utils/brand";
 import { ProductStatus } from "../entity/Product";
+import { enumQuery, stringQuery } from "../utils/query";
 
 const productService = new ProductService();
 
@@ -21,13 +22,16 @@ export class ProductController {
 
   async getAll(req: AuthRequest, res: Response, next: NextFunction) {
     try {
-      const { page, limit, category, status } = req.query;
+      const { page, limit, category, status, search } = req.query;
       const result = await productService.getProducts(
         getBrandId(req),
-        Number(page) || 1,
-        Number(limit) || 20,
-        category as string | undefined,
-        status as ProductStatus | undefined,
+        page,
+        limit,
+        {
+          category: stringQuery(category),
+          status: enumQuery(status, ProductStatus, "status"),
+          search: stringQuery(search),
+        },
       );
       res.status(200).json(result);
     } catch (err) {

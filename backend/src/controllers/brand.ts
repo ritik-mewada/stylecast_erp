@@ -3,7 +3,7 @@ import { BrandService } from "../services/brand";
 import { AuthRequest } from "../middleware/auth";
 import { getBrandId } from "../utils/brand";
 import { BrandApprovalStatus } from "../entity/Brand";
-import { AppError } from "../utils/AppError";
+import { enumQuery } from "../utils/query";
 
 const brandService = new BrandService();
 
@@ -11,15 +11,8 @@ export class BrandController {
   async list(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const { status, page, limit } = req.query;
-      const validStatuses = Object.values(BrandApprovalStatus) as string[];
-      if (status !== undefined && !validStatuses.includes(String(status))) {
-        throw new AppError(
-          400,
-          `status must be one of: ${validStatuses.join(", ")}`,
-        );
-      }
       const result = await brandService.listBrands(
-        status as BrandApprovalStatus | undefined,
+        enumQuery(status, BrandApprovalStatus, "status"),
         page,
         limit,
       );
