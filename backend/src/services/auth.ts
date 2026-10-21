@@ -1,15 +1,26 @@
+import crypto from "crypto";
 import bcrypt from "bcrypt";
+import { IsNull } from "typeorm";
+import { Config } from "../config";
 import { AppDataSource } from "../data-source";
 import { generateToken } from "../utils/jwt";
 import { Brand } from "../entity/Brand";
 import { User } from "../entity/User";
-import { LoginInput, RegisterInput } from "../types/auth";
+import { PasswordResetToken } from "../entity/PasswordResetToken";
+import { LoginInput, RegisterInput, ResetPasswordInput } from "../types/auth";
 import { UserRole } from "../utils";
 import { AppError } from "../utils/AppError";
+import { sendMail } from "../utils/mailer";
+
+const RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour
+
+const hashToken = (token: string) =>
+  crypto.createHash("sha256").update(token).digest("hex");
 
 export class AuthService {
   private brandRepository = AppDataSource.getRepository(Brand);
   private userRepository = AppDataSource.getRepository(User);
+  private resetTokenRepository = AppDataSource.getRepository(PasswordResetToken);
 
   async register(data: RegisterInput) {
     const existingBrand = await this.brandRepository.findOne({
@@ -105,5 +116,65 @@ export class AuthService {
       },
       token,
     };
+  }
+
+  // Emails a single-use reset link if the email belongs to an account. The
+  // caller always gets the same response either way, so this can't be used
+  // to find out which emails are registered. A new request replaces any
+  // earlier unused link.
+  async requestPasswordReset(email: string) {
+    const user = await this.userRepository.findOne({ where: { email } });
+    if (!user) {
+      return;
+    }
+
+    const token = crypto.randomBytes(32).toString("base64url");
+
+    await this.resetTokenRepository.delete({ userId: user.id, usedAt: IsNull() });
+    await this.resetTokenRepository.save(
+      this.resetTokenRepository.create({
+        userId: user.id,
+        tokenHash: hashToken(token),
+        expiresAt: new Date(Date.now() + RESET_TOKEN_TTL_MS),
+      }),
+    );
+
+    const link = `${Config.APP_URL}/reset-password?token=${encodeURIComponent(token)}`;
+    await sendMail({
+      to: user.email,
+      subject: "Reset your StyleCast password",
+      text: [
+        `Hi ${user.firstName},`,
+        "",
+        "Someone (hopefully you) asked to reset the password for your StyleCast account.",
+        `Choose a new password here: ${link}`,
+        "",
+        "The link expires in 1 hour and works once. If you didn't ask for this, you can ignore this email.",
+      ].join("\n"),
+    });
+  }
+
+  // Redeems a reset link. The token row is locked so the same link can't be
+  // used twice at once; every other open link for the user stops working too.
+  async resetPassword(data: ResetPasswordInput) {
+    const password = await bcrypt.hash(data.newPassword, 10);
+
+    await AppDataSource.transaction(async (m) => {
+      const record = await m.findOne(PasswordResetToken, {
+        where: { tokenHash: hashToken(data.token) },
+        lock: { mode: "pessimistic_write" },
+      });
+
+      if (!record || record.usedAt || record.expiresAt.getTime() < Date.now()) {
+        throw new AppError(400, "This reset link is invalid or has expired");
+      }
+
+      await m.update(User, { id: record.userId }, { password });
+      record.usedAt = new Date();
+      await m.save(record);
+      await m.delete(PasswordResetToken, { userId: record.userId, usedAt: IsNull() });
+    });
+
+    return { message: "Password updated. You can now sign in." };
   }
 }

@@ -15,6 +15,33 @@ export class UserController {
     }
   }
 
+  async getMe(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const result = await userService.getMe(req.user!.userId);
+      res.status(200).json(result);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async updateMe(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const result = await userService.updateMe(req.user!.userId, req.body);
+      res.status(200).json(result);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async changePassword(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const result = await userService.changePassword(req.user!.userId, req.body);
+      res.status(200).json(result);
+    } catch (err) {
+      next(err);
+    }
+  }
+
   async list(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const users = await userService.getUsers(getBrandId(req));

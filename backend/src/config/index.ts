@@ -31,6 +31,14 @@ export const Config = {
   JWT_SECRET: requireEnv("JWT_SECRET"),
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || "1d",
 
-  // CORS – comma-separated list of allowed origins, e.g. "http://localhost:3000,https://app.stylecast.io"
+  // CORS – comma-separated list of allowed origins, e.g. "http://localhost:5173,https://app.stylecast.io"
   ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS || "*",
+
+  // Dashboard base URL, used to build links in emails (password reset).
+  APP_URL: (process.env.APP_URL || "http://localhost:5173").replace(/\/+$/, ""),
+
+  // Email. Without SMTP_URL, emails are printed to the console in development
+  // and skipped (with a warning) in production.
+  SMTP_URL: process.env.SMTP_URL || "",
+  MAIL_FROM: process.env.MAIL_FROM || "StyleCast <no-reply@stylecast.example>",
 } as const;

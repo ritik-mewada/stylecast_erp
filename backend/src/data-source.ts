@@ -15,6 +15,7 @@ import { DataSource } from "typeorm";
 import { Config } from "./config";
 import { Brand } from "./entity/Brand";
 import { User } from "./entity/User";
+import { PasswordResetToken } from "./entity/PasswordResetToken";
 import { Product } from "./entity/Product";
 import { ProductVariant } from "./entity/ProductVariant";
 import { ProductImage } from "./entity/ProductImage";
@@ -44,6 +45,7 @@ export const AppDataSource = new DataSource({
     OrderItem,
     ShippingRule,
     TrafficMetric,
+    PasswordResetToken,
   ],
   migrations: [__dirname + "/migrations/*.{ts,js}"],
   subscribers: [],
