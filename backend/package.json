@@ -7,7 +7,7 @@
     "dev": "nodemon src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "start:prod": "typeorm migration:run -d dist/data-source.js && node dist/server.js",
+    "start:prod": "typeorm migration:run -d dist/data-source.js && exec node dist/server.js",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "create-admin": "ts-node src/scripts/create-admin.ts",
