@@ -6,6 +6,7 @@ import {
   IsIn,
 } from "class-validator";
 import { BRAND_ROLES, UserRole } from "../utils";
+import { NormalizeEmail } from "./normalize";
 
 export class CreateUserDto {
   @IsString()
@@ -16,6 +17,7 @@ export class CreateUserDto {
   @IsNotEmpty({ message: "lastName is required" })
   lastName!: string;
 
+  @NormalizeEmail()
   @IsEmail({}, { message: "email must be a valid email address" })
   email!: string;
 

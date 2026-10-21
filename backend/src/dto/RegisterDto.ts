@@ -5,6 +5,7 @@ import {
   MinLength,
   IsOptional,
 } from "class-validator";
+import { NormalizeEmail } from "./normalize";
 
 export class RegisterDto {
   @IsString()
@@ -47,6 +48,7 @@ export class RegisterDto {
   @IsNotEmpty({ message: "lastName is required" })
   lastName!: string;
 
+  @NormalizeEmail()
   @IsEmail({}, { message: "email must be a valid email address" })
   @IsNotEmpty({ message: "email is required" })
   email!: string;
