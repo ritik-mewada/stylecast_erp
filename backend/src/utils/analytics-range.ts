@@ -4,6 +4,14 @@
 
 export type AnalyticsRange = "daily" | "weekly" | "monthly";
 
+// Accepted ?range= values. "all_time" (or no range) means no start date.
+export const ANALYTICS_RANGES = {
+  DAILY: "daily",
+  WEEKLY: "weekly",
+  MONTHLY: "monthly",
+  ALL_TIME: "all_time",
+} as const;
+
 export const getRangeStartDate = (range?: string): Date | null => {
   const now = new Date();
 

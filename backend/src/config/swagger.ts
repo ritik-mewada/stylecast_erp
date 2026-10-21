@@ -1153,6 +1153,11 @@ const swaggerDocument = {
 };
 
 export const setupSwagger = (app: Express) => {
+  // Raw spec, for client type generation (openapi-typescript).
+  app.get("/api-docs.json", (_req, res) => {
+    res.json(swaggerDocument);
+  });
+
   app.use(
     "/api-docs",
     swaggerUi.serve,

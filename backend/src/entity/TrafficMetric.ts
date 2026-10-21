@@ -1,5 +1,5 @@
 // Stores daily traffic data for a brand — how many sessions happened and how
-// many orders were placed that day. This powers the conversion rate analytics.
+// many orders were placed that day (one row per brand per day). This powers the conversion rate analytics.
 // Data here is expected to be synced in from an external marketplace or analytics source.
 
 import {
@@ -14,7 +14,7 @@ import {
 import { Brand } from "./Brand";
 
 @Entity("traffic_metrics")
-@Index(["brandId", "metricDate"])
+@Index(["brandId", "metricDate"], { unique: true })
 export class TrafficMetric {
   @PrimaryGeneratedColumn("uuid")
   id!: string;

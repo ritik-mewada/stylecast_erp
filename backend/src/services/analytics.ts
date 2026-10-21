@@ -2,6 +2,9 @@
 // It queries orders, inventory, products, and traffic metrics to produce things
 // like sales overviews, top products, low stock alerts, and conversion rates.
 // Most methods support an optional date range (daily, weekly, monthly).
+//
+// Sales figures leave out cancelled and refunded orders: neither brought in
+// money, and both put their stock back.
 
 import { AppDataSource } from "../data-source";
 import { Order, OrderStatus } from "../entity/Order";
@@ -9,7 +12,10 @@ import { OrderItem } from "../entity/OrderItem";
 import { Product, ProductStatus } from "../entity/Product";
 import { Inventory } from "../entity/Inventory";
 import { TrafficMetric } from "../entity/TrafficMetric";
+import { RecordTrafficInput } from "../types/analytics";
 import { getRangeStartDate } from "../utils/analytics-range";
+
+const NOT_SALES = [OrderStatus.CANCELLED, OrderStatus.REFUNDED];
 
 export class AnalyticsService {
   private orderRepo = AppDataSource.getRepository(Order);
@@ -50,9 +56,7 @@ export class AnalyticsService {
         "total_sales",
       )
       .where("order.brandId = :brandId", { brandId })
-      .andWhere("order.orderStatus != :cancelled", {
-        cancelled: OrderStatus.CANCELLED,
-      });
+      .andWhere("order.orderStatus NOT IN (:...notSales)", { notSales: NOT_SALES });
 
     if (startDate) {
       salesQuery.andWhere("order.createdAt >= :startDate", { startDate });
@@ -82,9 +86,7 @@ export class AnalyticsService {
       .addSelect("SUM(order_item.quantity)", "units_sold")
       .addSelect("SUM(order_item.price * order_item.quantity)", "revenue")
       .where("order.brandId = :brandId", { brandId })
-      .andWhere("order.orderStatus != :cancelled", {
-        cancelled: OrderStatus.CANCELLED,
-      });
+      .andWhere("order.orderStatus NOT IN (:...notSales)", { notSales: NOT_SALES });
 
     if (startDate) {
       query.andWhere("order.createdAt >= :startDate", { startDate });
@@ -152,9 +154,7 @@ export class AnalyticsService {
       .leftJoin("variant.product", "product")
       .select("COALESCE(SUM(order_item.quantity), 0)", "units_sold")
       .where("order.brandId = :brandId", { brandId })
-      .andWhere("order.orderStatus != :cancelled", {
-        cancelled: OrderStatus.CANCELLED,
-      });
+      .andWhere("order.orderStatus NOT IN (:...notSales)", { notSales: NOT_SALES });
 
     if (startDate) {
       soldQuery.andWhere("order.createdAt >= :startDate", { startDate });
@@ -217,5 +217,50 @@ export class AnalyticsService {
       unit: "%",
       note: "Conversion rate is based on marketplace traffic data synced into traffic_metrics.",
     };
+  }
+
+  // Daily revenue and order count for the last `days` days (today included),
+  // with zero-filled days, for the dashboard chart. Dates are YYYY-MM-DD.
+  async getSalesSeries(brandId: string, days: number) {
+    const rows: { date: string; revenue: string; orders: string }[] =
+      await AppDataSource.query(
+        `SELECT to_char(day.d, 'YYYY-MM-DD') AS date,
+                COALESCE(s.revenue, 0) AS revenue,
+                COALESCE(s.orders, 0) AS orders
+         FROM generate_series(CURRENT_DATE - ($2::int - 1), CURRENT_DATE, interval '1 day') AS day(d)
+         LEFT JOIN (
+           SELECT o."createdAt"::date AS d,
+                  COUNT(DISTINCT o.id) AS orders,
+                  SUM(oi.price * oi.quantity) AS revenue
+           FROM orders o
+           JOIN order_items oi ON oi."orderId" = o.id
+           WHERE o."brandId" = $1
+             AND o."orderStatus" NOT IN ('${NOT_SALES.join("', '")}')
+             AND o."createdAt" >= CURRENT_DATE - ($2::int - 1)
+           GROUP BY 1
+         ) s ON s.d = day.d::date
+         ORDER BY day.d`,
+        [brandId, days],
+      );
+
+    return rows.map((row) => ({
+      date: row.date,
+      revenue: Number(row.revenue),
+      orders: Number(row.orders),
+    }));
+  }
+
+  // Records one day of marketplace traffic for the brand (sessions and the
+  // orders placed that day), replacing any earlier figures for that date.
+  // This is what the conversion rate is computed from.
+  async recordTraffic(brandId: string, data: RecordTrafficInput) {
+    await this.trafficMetricRepo.upsert(
+      { brandId, ...data },
+      { conflictPaths: ["brandId", "metricDate"] },
+    );
+
+    return this.trafficMetricRepo.findOneOrFail({
+      where: { brandId, metricDate: data.metricDate },
+    });
   }
 }
