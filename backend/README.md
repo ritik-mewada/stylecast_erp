@@ -174,6 +174,6 @@ The API runs on any Node host with managed Postgres (Render, Railway, Fly, …):
 | Health check path | `/health` |
 | Environment | `NODE_ENV=production`, `JWT_SECRET` (long and random), `DATABASE_URL`, `TRUST_PROXY=1`, `ALLOWED_ORIGINS` (dashboard origin), `APP_URL`, optionally `SMTP_URL` |
 
-After the first deploy, create an admin with `npm run create-admin`, or load the demo with `npm run seed:prod`, from the host's shell.
+After the first deploy, create an admin with `npm run create-admin`, or load the demo with `npm run seed:prod`, from the host's shell. Seeded accounts, including the admin, share one known password (`SEED_PASSWORD`, default `password`). Only seed a public demo, never a real production database.
 
 Rate-limit counters are kept in memory, so they're per instance. Running several instances would need a shared store such as Redis.
