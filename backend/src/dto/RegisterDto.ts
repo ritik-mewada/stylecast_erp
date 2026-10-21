@@ -5,13 +5,15 @@ import {
   MinLength,
   IsOptional,
 } from "class-validator";
-import { NormalizeEmail } from "./normalize";
+import { NormalizeEmail, NormalizeSlug, Trim } from "./normalize";
 
 export class RegisterDto {
+  @Trim()
   @IsString()
   @IsNotEmpty({ message: "brandName is required" })
   brandName!: string;
 
+  @NormalizeSlug("brandSlug")
   @IsString()
   @IsNotEmpty({ message: "brandSlug is required" })
   brandSlug!: string;

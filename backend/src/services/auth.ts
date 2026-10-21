@@ -23,9 +23,12 @@ export class AuthService {
   private resetTokenRepository = AppDataSource.getRepository(PasswordResetToken);
 
   async register(data: RegisterInput) {
-    const existingBrand = await this.brandRepository.findOne({
-      where: [{ name: data.brandName }, { slug: data.brandSlug }],
-    });
+    // Slugs are already lowercase; names are unique regardless of case.
+    const existingBrand = await this.brandRepository
+      .createQueryBuilder("brand")
+      .where("LOWER(brand.name) = LOWER(:name)", { name: data.brandName })
+      .orWhere("brand.slug = :slug", { slug: data.brandSlug })
+      .getExists();
 
     if (existingBrand) {
       throw new AppError(409, "A brand with this name or slug already exists");

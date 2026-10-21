@@ -537,8 +537,15 @@ export const swaggerDocument = {
         description: "Creates a brand (pending approval) and its brand_owner account.",
         required: ["brandName", "brandSlug", "firstName", "lastName", "email", "password"],
         properties: {
-          brandName: { type: "string", example: "Maison Ondine" },
-          brandSlug: { type: "string", example: "maison-ondine" },
+          brandName: { type: "string", example: "Maison Ondine", description: "Unique across brands, ignoring case" },
+          brandSlug: {
+            type: "string",
+            pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            minLength: 2,
+            maxLength: 60,
+            example: "maison-ondine",
+            description: "Trimmed and lowercased, then lowercase letters, numbers and single hyphens",
+          },
           companyInfo: { type: "string" },
           website: { type: "string" },
           shippingOrigin: { type: "string" },
@@ -604,8 +611,8 @@ export const swaggerDocument = {
         type: "object",
         description: "All fields optional. Approval status and the active flag can't be changed here.",
         properties: {
-          name: { type: "string" },
-          slug: { type: "string" },
+          name: { type: "string", minLength: 1, description: "Unique across brands, ignoring case" },
+          slug: { type: "string", pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$", minLength: 2, maxLength: 60 },
           companyInfo: { type: "string" },
           website: { type: "string" },
           shippingOrigin: { type: "string" },

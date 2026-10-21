@@ -9,6 +9,8 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
+  Check,
+  Index,
 } from "typeorm";
 import { User } from "./User";
 import { Product } from "./Product";
@@ -22,7 +24,14 @@ export enum BrandApprovalStatus {
   REJECTED = "rejected",
 }
 
+// Slugs are stored lowercase, so the unique slug constraint is effectively
+// case-insensitive. Names keep their display case but must be unique
+// ignoring case: UQ_brands_name_lower is a unique index on lower(name),
+// created by a migration (TypeORM can't model expression indexes, hence
+// synchronize: false so it isn't dropped).
 @Entity("brands")
+@Check("CHK_brands_slug_lowercase", `"slug" = lower("slug")`)
+@Index("UQ_brands_name_lower", { synchronize: false })
 export class Brand {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
