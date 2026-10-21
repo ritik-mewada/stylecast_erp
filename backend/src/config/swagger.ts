@@ -733,7 +733,7 @@ export const swaggerDocument = {
         required: ["regionName", "shippingFee", "deliveryEstimate"],
         properties: {
           regionName: { type: "string", example: "United States" },
-          shippingFee: { type: "number", exclusiveMinimum: true, minimum: 0, example: 15 },
+          shippingFee: { type: "number", minimum: 0, example: 15, description: "0 for free shipping to this region" },
           freeShippingThreshold: { type: "number", exclusiveMinimum: true, minimum: 0, example: 200 },
           deliveryEstimate: { type: "string", example: "4–7 business days" },
         },
@@ -743,7 +743,7 @@ export const swaggerDocument = {
         description: "All fields optional.",
         properties: {
           regionName: { type: "string" },
-          shippingFee: { type: "number", exclusiveMinimum: true, minimum: 0 },
+          shippingFee: { type: "number", minimum: 0 },
           freeShippingThreshold: { type: "number", exclusiveMinimum: true, minimum: 0 },
           deliveryEstimate: { type: "string" },
         },
