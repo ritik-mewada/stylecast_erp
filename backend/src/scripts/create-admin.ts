@@ -15,7 +15,7 @@ import { User } from "../entity/User";
 import { UserRole } from "../utils";
 
 const main = async () => {
-  const email = process.env.ADMIN_EMAIL?.trim();
+  const email = process.env.ADMIN_EMAIL?.trim().toLowerCase();
   const password = process.env.ADMIN_PASSWORD;
 
   if (!email || !password) {

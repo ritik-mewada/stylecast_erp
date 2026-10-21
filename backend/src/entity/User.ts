@@ -11,11 +11,16 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  Check,
 } from "typeorm";
 import { Brand } from "./Brand";
 import { UserRole } from "../utils";
 
+// Emails are stored lowercased (see NormalizeEmail), which makes the unique
+// email constraint case-insensitive. The check stops any other write path
+// from sneaking in a mixed-case duplicate.
 @Entity("users")
+@Check("CHK_users_email_lowercase", `"email" = lower("email")`)
 export class User {
   @PrimaryGeneratedColumn("uuid")
   id!: string;

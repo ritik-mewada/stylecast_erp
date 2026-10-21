@@ -1,4 +1,5 @@
 import { IsEmail, IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { NormalizeEmail } from "./normalize";
 
 export class UpdateMeDto {
   @IsOptional()
@@ -12,6 +13,7 @@ export class UpdateMeDto {
   lastName?: string;
 
   @IsOptional()
+  @NormalizeEmail()
   @IsEmail({}, { message: "email must be a valid email address" })
   email?: string;
 }

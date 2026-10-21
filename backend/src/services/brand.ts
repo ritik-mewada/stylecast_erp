@@ -109,6 +109,10 @@ export class BrandService {
     }
 
     brand.approvalStatus = approvalStatus;
+    // A rejected brand is marked inactive; approving it again (or putting it
+    // back to pending) reactivates it. It keeps its data and can still sign
+    // in, but only approved brands can take orders.
+    brand.isActive = approvalStatus !== BrandApprovalStatus.REJECTED;
     await this.brandRepository.save(brand);
 
     return brand;
