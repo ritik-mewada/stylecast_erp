@@ -50,6 +50,9 @@ export const Config = {
   // Failed sign-in attempts allowed per IP per 15 minutes.
   LOGIN_RATE_LIMIT: Number(process.env.LOGIN_RATE_LIMIT) || 10,
 
+  // Sign-ups (new brands) allowed per IP per hour.
+  REGISTER_RATE_LIMIT: Number(process.env.REGISTER_RATE_LIMIT) || 10,
+
   // CORS – comma-separated list of allowed origins, e.g. "http://localhost:5173,https://app.stylecast.io"
   ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS || "*",
 

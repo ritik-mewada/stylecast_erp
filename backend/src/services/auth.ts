@@ -14,6 +14,10 @@ import { sendMail } from "../utils/mailer";
 
 const RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour
 
+// Checked against when an email has no account, so an unknown email takes as
+// long as a wrong password and response times don't reveal which emails exist.
+const DUMMY_PASSWORD_HASH = bcrypt.hash("no-such-account", 10);
+
 const hashToken = (token: string) =>
   crypto.createHash("sha256").update(token).digest("hex");
 
@@ -95,13 +99,12 @@ export class AuthService {
       relations: ["brand"],
     });
 
-    if (!user) {
-      throw new AppError(401, "Invalid email or password");
-    }
+    const isPasswordValid = await bcrypt.compare(
+      data.password,
+      user?.password ?? (await DUMMY_PASSWORD_HASH),
+    );
 
-    const isPasswordValid = await bcrypt.compare(data.password, user.password);
-
-    if (!isPasswordValid) {
+    if (!user || !isPasswordValid) {
       throw new AppError(401, "Invalid email or password");
     }
 

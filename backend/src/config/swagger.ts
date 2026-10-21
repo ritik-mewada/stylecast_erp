@@ -122,7 +122,8 @@ export const swaggerDocument = {
       "List endpoints take `page` and `limit` (max 100) and return `{ data, pagination: { page, limit, total, totalPages } }`.",
       "",
       "## Rate limits",
-      "`POST /auth/login`: 10 failed attempts per IP per 15 minutes. `POST /auth/forgot-password`: 5 per IP per 15 minutes. Over the limit: 429.",
+      "`POST /auth/login`: 10 failed attempts per IP per 15 minutes. `POST /auth/forgot-password`: 5 per IP per 15 minutes. " +
+        "`POST /auth/register`: 10 per IP per hour. Over the limit: 429.",
     ].join("\n"),
   },
   servers: [{ url: "/api/v1", description: "This server" }],
@@ -837,7 +838,7 @@ export const swaggerDocument = {
         requestBody: jsonBody("RegisterRequest"),
         responses: {
           "201": ok("Registered", ref("RegisterResponse")),
-          ...errors(400, 409),
+          ...errors(400, 409, 429),
         },
       },
     },
