@@ -1164,7 +1164,7 @@ export const setupSwagger = (app: Express) => {
     swaggerUi.setup(swaggerDocument, {
       swaggerOptions: {
         persistAuthorization: true,
-        responseInterceptor: (response: any) => {
+        responseInterceptor: (response: { url?: string; text: string }) => {
           try {
             if (response.url && response.url.includes("/auth/login")) {
               const data = JSON.parse(response.text);
@@ -1177,7 +1177,7 @@ export const setupSwagger = (app: Express) => {
           }
           return response;
         },
-        requestInterceptor: (req: any) => {
+        requestInterceptor: (req: { headers: Record<string, string> }) => {
           const token = window.localStorage.getItem("stylecast_jwt_token");
           if (token) {
             req.headers["Authorization"] = `Bearer ${token}`;

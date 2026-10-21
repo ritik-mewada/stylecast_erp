@@ -15,7 +15,6 @@ import { QueryFailedError } from "typeorm";
 import { AppError } from "../utils/AppError";
 import { Config } from "../config";
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const globalErrorHandler = (
   err: unknown,
   _req: Request,
