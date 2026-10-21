@@ -1,5 +1,4 @@
-import { IsString, IsEmail, IsBoolean, IsOptional, IsEnum } from "class-validator";
-import { BrandApprovalStatus } from "../entity/Brand";
+import { IsString, IsEmail, IsBoolean, IsOptional } from "class-validator";
 
 export class UpdateBrandDto {
   @IsOptional()
@@ -37,8 +36,4 @@ export class UpdateBrandDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
-
-  @IsOptional()
-  @IsEnum(BrandApprovalStatus, { message: "Invalid approval status" })
-  approvalStatus?: BrandApprovalStatus;
 }

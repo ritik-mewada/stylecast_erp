@@ -2,32 +2,35 @@ import { Router } from "express";
 import { OrderController } from "../controllers/order";
 import { authenticate } from "../middleware/auth";
 import { authorizeRoles } from "../middleware/role";
-import { validate } from "../middleware/validate";
+import { uuidParam, validate } from "../middleware/validate";
+import { CreateOrderDto } from "../dto/CreateOrderDto";
 import { UpdateOrderStatusDto } from "../dto/UpdateOrderStatusDto";
-import { UserRole } from "../utils";
+import { BRAND_ROLES, UserRole } from "../utils";
 
 const router = Router();
 const orderController = new OrderController();
 
+router.param("id", uuidParam);
+
+router.post(
+  "/",
+  authenticate,
+  authorizeRoles(...BRAND_ROLES),
+  validate(CreateOrderDto),
+  (req, res, next) => orderController.create(req, res, next),
+);
+
 router.get(
   "/",
   authenticate,
-  authorizeRoles(
-    UserRole.BRAND_OWNER,
-    UserRole.BRAND_MANAGER,
-    UserRole.OPERATIONS_MANAGER,
-  ),
+  authorizeRoles(...BRAND_ROLES),
   (req, res, next) => orderController.getAll(req, res, next),
 );
 
 router.get(
   "/:id",
   authenticate,
-  authorizeRoles(
-    UserRole.BRAND_OWNER,
-    UserRole.BRAND_MANAGER,
-    UserRole.OPERATIONS_MANAGER,
-  ),
+  authorizeRoles(...BRAND_ROLES),
   (req, res, next) => orderController.getOne(req, res, next),
 );
 

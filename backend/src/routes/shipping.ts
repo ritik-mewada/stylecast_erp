@@ -2,13 +2,15 @@ import { Router } from "express";
 import { ShippingController } from "../controllers/shipping";
 import { authenticate } from "../middleware/auth";
 import { authorizeRoles } from "../middleware/role";
-import { validate } from "../middleware/validate";
+import { uuidParam, validate } from "../middleware/validate";
 import { CreateShippingRuleDto } from "../dto/CreateShippingRuleDto";
 import { UpdateShippingRuleDto } from "../dto/UpdateShippingRuleDto";
-import { UserRole } from "../utils";
+import { BRAND_ROLES, UserRole } from "../utils";
 
 const router = Router();
 const controller = new ShippingController();
+
+router.param("id", uuidParam);
 
 router.post(
   "/",
@@ -21,6 +23,7 @@ router.post(
 router.get(
   "/",
   authenticate,
+  authorizeRoles(...BRAND_ROLES),
   (req, res, next) => controller.list(req, res, next),
 );
 

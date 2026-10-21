@@ -10,3 +10,14 @@ export interface CreateUserInput {
   password: string;
   role: UserRole;
 }
+
+export interface UpdateMeInput {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+}
+
+export interface ChangePasswordInput {
+  currentPassword: string;
+  newPassword: string;
+}

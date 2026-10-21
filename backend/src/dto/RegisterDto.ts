@@ -4,9 +4,7 @@ import {
   IsNotEmpty,
   MinLength,
   IsOptional,
-  IsEnum,
 } from "class-validator";
-import { UserRole } from "../utils";
 
 export class RegisterDto {
   @IsString()
@@ -56,8 +54,4 @@ export class RegisterDto {
   @IsString()
   @MinLength(8, { message: "password must be at least 8 characters" })
   password!: string;
-
-  @IsOptional()
-  @IsEnum(UserRole, { message: "Invalid role" })
-  role?: UserRole;
 }

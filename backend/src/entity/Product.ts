@@ -13,6 +13,7 @@ import {
   OneToMany,
   Index,
 } from "typeorm";
+import { decimalTransformer } from "../utils/transformers";
 import { Brand } from "./Brand";
 import { ProductVariant } from "./ProductVariant";
 import { ProductImage } from "./ProductImage";
@@ -39,7 +40,12 @@ export class Product {
   @Column()
   category!: string;
 
-  @Column({ type: "decimal", precision: 10, scale: 2 })
+  @Column({
+    type: "decimal",
+    precision: 10,
+    scale: 2,
+    transformer: decimalTransformer,
+  })
   price!: number;
 
   @Column({

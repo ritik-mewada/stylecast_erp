@@ -5,18 +5,19 @@ Work through these one at a time. Each step gets its own branch and PR.
 ## Step 1 — Correctness & security fixes
 Detailed plan: [docs/plans/2026-10-14-step1-correctness-fixes.md](docs/plans/2026-10-14-step1-correctness-fixes.md)
 
-- [ ] 0. Local environment ready (Postgres running, typecheck baseline)
-- [ ] 1. Add `platform_admin` role; stop register/invite from setting arbitrary roles
-- [ ] 2. Brandless admin users + `create-admin` script; brand routes reject admin tokens
-- [ ] 3. Brand approval restricted to platform admin; `GET /brands?status=` for admins
-- [ ] 4. Scope inventory endpoints to the caller's brand
-- [ ] 5. `POST /orders` with locked stock check and decrement (approved brands only)
-- [ ] 6. Restock on cancel, and on refund unless already cancelled
-- [ ] 7. `synchronize: false` + `InitialSchema` migration + prod migration script
-- [ ] 8. Update Swagger and README
-- [ ] 9. Typecheck/build clean, manual smoke run, PR
+- [x] 0. Local environment ready (Postgres running, typecheck baseline)
+- [x] 1. Add `platform_admin` role; stop register/invite from setting arbitrary roles
+- [x] 2. Brandless admin users + `create-admin` script; brand routes reject admin tokens
+- [x] 3. Brand approval restricted to platform admin; `GET /brands?status=` for admins
+- [x] 4. Scope inventory endpoints to the caller's brand
+- [x] 5. `POST /orders` with locked stock check and decrement (approved brands only)
+- [x] 6. Restock on cancel, and on refund unless already cancelled
+- [x] 7. `synchronize: false` + `InitialSchema` migration + prod migration script
+- [x] 8. Update Swagger and README
+- [x] 9. Typecheck/build clean, manual smoke run
+- [ ] Open the PR
 
-## Step 2 — Automated tests
+## Step 2 — Automated tests *(deferred for now)*
 - [ ] Jest + ts-jest + Supertest, separate test database, migrations run before the suite
 - [ ] Auth: register, login, invalid token, role checks
 - [ ] Tenant isolation: brand B can't see brand A's products, inventory or orders
@@ -25,28 +26,30 @@ Detailed plan: [docs/plans/2026-10-14-step1-correctness-fixes.md](docs/plans/202
 - [ ] GitHub Actions: typecheck + tests on every push/PR (Postgres service container)
 
 ## Step 3 — Seed, Docker, deploy
-- [ ] `npm run seed`: an admin, one approved demo brand, products/variants/stock, ~50 orders over 30 days, traffic metrics
-- [ ] `POST /analytics/traffic` (or a seed-only path) so conversion-rate has data
-- [ ] Dockerfile (multi-stage) + `docker-compose.yml` with Postgres; `docker compose up` works from scratch
-- [ ] `/health` checks the DB connection
-- [ ] Login rate limiting (`express-rate-limit`)
-- [ ] Deploy to Render or Railway with managed Postgres; migrations run on release
-- [ ] Live Swagger link at `/api-docs`
+- [x] `npm run seed`: an admin, one approved demo brand, products/variants/stock, ~50 orders over 30 days, traffic metrics
+- [x] `POST /analytics/traffic` so conversion-rate has data
+- [ ] Dockerfile (multi-stage) + `docker-compose.yml` with Postgres; `docker compose up` works from scratch *(deferred for now)*
+- [x] `/health` checks the DB connection
+- [x] Login rate limiting (`express-rate-limit`)
+- [x] Deploy-ready: `DATABASE_URL`, `TRUST_PROXY`, `npm run start:prod` runs migrations on start (see [backend/README.md](backend/README.md#deploying))
+- [ ] Deploy to Render or Railway with managed Postgres (needs an account: create the service with the settings in the backend README, then `npm run seed:prod` or `create-admin`)
+- [ ] Live Swagger link at `/api-docs` (served locally already; link once deployed)
 
 ## Step 3.5 — Frontend dashboard (`frontend/`)
 Detailed plan: [docs/plans/2026-10-15-frontend-dashboard.md](docs/plans/2026-10-15-frontend-dashboard.md)
 
 - [x] Design phase: every screen built on a mock API, reviewed and signed off (frontend `15ec478`)
-- [ ] Backend endpoints the UI needs (list in the plan: spec JSON, CORS, search/filters, paginated inventory, sales series, admin stats, uploads, password flows, `/users/me`)
-- [ ] API integration: Axios client + JWT, generated types, swap `src/api/*` mock bodies for HTTP, remove demo accounts and mocks
-- [x] GitHub Actions CI: lint, typecheck, build (frontend); typecheck, build (backend)
+- [x] Backend endpoints the UI needs (spec JSON, CORS, search/filters, paginated inventory, sales series, admin stats, uploads, password flows, `/users/me`)
+- [ ] API integration: Axios client + JWT, generated types, swap `src/api/*` mock bodies for HTTP, remove demo accounts and mocks (see the integration notes in the plan)
+- [x] GitHub Actions CI: lint, typecheck, build (frontend and backend)
 - [x] Mock-API demo deployed to GitHub Pages (`deploy-pages.yml`)
 - [ ] Re-enable automatic CI triggers (paused during development; manual runs only). Deploy already runs on merge.
 - [ ] Tests (Vitest, Playwright smoke), added to CI
 - [ ] Once integrated, point the Pages build at the deployed API (`VITE_API_URL`) and add `https://ritik-mewada.github.io` to `ALLOWED_ORIGINS`
 
 ## Step 4 — Polish
-- [ ] Rename `TrafficMatric.ts` → `TrafficMetric.ts`
-- [ ] ESLint config + `npm run lint` in CI
-- [ ] README: live link, demo credentials, architecture diagram, design decisions (multi-tenancy, locking, state machine)
+- [x] Rename `TrafficMatric.ts` → `TrafficMetric.ts`
+- [x] ESLint config + `npm run lint` in CI (backend; the frontend uses oxlint)
+- [x] Backend README: setup, demo credentials, roles, design decisions (multi-tenancy, locking, state machine)
+- [ ] Root README: live link, screenshots, architecture diagram
 - [ ] Mark the project "Complete" on the portfolio and pin the repo on GitHub

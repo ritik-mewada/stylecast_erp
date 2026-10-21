@@ -11,6 +11,7 @@ import {
   JoinColumn,
   Index,
 } from "typeorm";
+import { decimalTransformer } from "../utils/transformers";
 import { Order } from "./Order";
 import { Product } from "./Product";
 import { ProductVariant } from "./ProductVariant";
@@ -35,7 +36,12 @@ export class OrderItem {
   @Column({ type: "int" })
   quantity!: number;
 
-  @Column({ type: "decimal", precision: 10, scale: 2 })
+  @Column({
+    type: "decimal",
+    precision: 10,
+    scale: 2,
+    transformer: decimalTransformer,
+  })
   price!: number;
 
   @ManyToOne(() => Order, (order) => order.items, { onDelete: "CASCADE" })

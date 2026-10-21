@@ -12,7 +12,7 @@ import { UserRole } from "../utils";
 export interface AuthRequest extends Request {
   user?: {
     userId: string;
-    brandId: string;
+    brandId: string | null;
     role: UserRole;
     email: string;
   };

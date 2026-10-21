@@ -12,6 +12,7 @@ import {
   JoinColumn,
   Index,
 } from "typeorm";
+import { decimalTransformer } from "../utils/transformers";
 import { Brand } from "./Brand";
 
 @Entity("shipping_rules")
@@ -26,10 +27,21 @@ export class ShippingRule {
   @Column()
   regionName!: string;
 
-  @Column({ type: "decimal", precision: 10, scale: 2 })
+  @Column({
+    type: "decimal",
+    precision: 10,
+    scale: 2,
+    transformer: decimalTransformer,
+  })
   shippingFee!: number;
 
-  @Column({ type: "decimal", precision: 10, scale: 2, nullable: true })
+  @Column({
+    type: "decimal",
+    precision: 10,
+    scale: 2,
+    nullable: true,
+    transformer: decimalTransformer,
+  })
   freeShippingThreshold!: number;
 
   @Column()

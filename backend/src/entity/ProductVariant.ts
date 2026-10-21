@@ -13,6 +13,7 @@ import {
   Index,
   OneToOne,
 } from "typeorm";
+import { decimalTransformer } from "../utils/transformers";
 import { Product } from "./Product";
 import { Inventory } from "./Inventory";
 
@@ -38,8 +39,14 @@ export class ProductVariant {
   @Column({ nullable: true })
   material!: string;
 
-  @Column({ type: "decimal", precision: 10, scale: 2, nullable: true })
-  priceOverride!: number;
+  @Column({
+    type: "decimal",
+    precision: 10,
+    scale: 2,
+    nullable: true,
+    transformer: decimalTransformer,
+  })
+  priceOverride!: number | null;
 
   @ManyToOne(() => Product, (product) => product.variants, {
     onDelete: "CASCADE",

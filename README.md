@@ -16,7 +16,7 @@ git clone https://github.com/ritik-mewada/stylecast_erp.git
 cd stylecast_erp
 
 # API on http://localhost:3000 (needs PostgreSQL and backend/.env; see backend/README.md)
-cd backend && npm install && npm run dev
+cd backend && npm install && npm run migration:run && npm run seed && npm run dev
 
 # Dashboard on http://localhost:5173 (in a second terminal)
 cd frontend && npm install && npm run dev
@@ -26,7 +26,7 @@ The dashboard currently runs on a built-in mock API, so it works without the bac
 
 ## CI/CD
 
-- **CI** (`.github/workflows/ci.yml`): lints, typechecks and builds the frontend, and typechecks and builds the backend.
+- **CI** (`.github/workflows/ci.yml`): lints, typechecks and builds the frontend and the backend.
 - **Deploy** (`.github/workflows/deploy-pages.yml`): builds the dashboard with `BASE_PATH=/stylecast_erp/` and publishes it to GitHub Pages at <https://ritik-mewada.github.io/stylecast_erp/>.
 
 The deploy runs automatically after every merge to `main` that touches `frontend/`, and can also be run by hand. CI is **manual-only during development** (Actions tab → **Run workflow**); its push/PR triggers come back at the end of development by uncommenting them at the top of `ci.yml`.
@@ -45,4 +45,12 @@ TODO.md      Roadmap
 
 ## Status
 
-The API covers brands, products, inventory, orders, shipping and analytics. Correctness and security fixes, including order creation with stock locking, are next. The dashboard design is done on mock data. Connecting it to the API is next. See [TODO.md](TODO.md).
+The API is feature-complete for the dashboard:
+- Brand approval by a platform admin.
+- Products with variants, images and uploads.
+- Inventory scoped to each brand.
+- Order creation with locked stock, plus restock on cancel and refund.
+- Shipping, analytics, account and password-reset endpoints.
+- Migrations, demo seed data, rate limiting and a full OpenAPI spec ([backend/README.md](backend/README.md)).
+
+The dashboard design is done on mock data. Connecting it to the API is next. Automated tests and deployment are still open. See [TODO.md](TODO.md).
