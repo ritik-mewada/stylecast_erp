@@ -17,7 +17,9 @@ Detailed plan: [docs/plans/2026-10-14-step1-correctness-fixes.md](docs/plans/202
 - [x] 9. Typecheck/build clean, manual smoke run
 - [ ] Open the PR
 
-## Step 2 — Automated tests *(deferred for now)*
+## Step 2 — Automated tests
+Detailed plan: [docs/plans/2026-10-31-backend-test-suite.md](docs/plans/2026-10-31-backend-test-suite.md)
+
 - [ ] Jest + ts-jest + Supertest, separate test database, migrations run before the suite
 - [ ] Auth: register, login, invalid token, role checks
 - [ ] Tenant isolation: brand B can't see brand A's products, inventory or orders
