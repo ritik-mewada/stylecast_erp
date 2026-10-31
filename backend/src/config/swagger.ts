@@ -103,7 +103,8 @@ export const swaggerDocument = {
       "",
       "## Authentication",
       "Protected routes need a JWT from `POST /auth/login` as `Authorization: Bearer <token>`.",
-      "Click **Authorize** (🔒) and paste a token, or log in through `POST /auth/login` here and the token is used automatically.",
+      "Click **Authorize** (🔒) and paste a token, or log in through `POST /auth/login` here and the token is filled in for you.",
+      "It's kept across page reloads; **Logout** in the Authorize dialog clears it.",
       "",
       "## Roles",
       "| Role | Can |",
@@ -120,6 +121,7 @@ export const swaggerDocument = {
       "",
       "## Pagination",
       "List endpoints take `page` and `limit` (max 100) and return `{ data, pagination: { page, limit, total, totalPages } }`.",
+      "Numeric query values (`page`, `limit`, `days`) outside their range are clamped to it, and non-numbers fall back to the default; neither is an error.",
       "",
       "## Rate limits",
       "`POST /auth/login`: 10 failed attempts per IP per 15 minutes. `POST /auth/forgot-password`: 5 per IP per 15 minutes. " +
@@ -742,7 +744,14 @@ export const swaggerDocument = {
         properties: {
           regionName: { type: "string", example: "United States" },
           shippingFee: { type: "number", minimum: 0, example: 15, description: "0 for free shipping to this region" },
-          freeShippingThreshold: { type: "number", exclusiveMinimum: true, minimum: 0, example: 200 },
+          freeShippingThreshold: {
+            type: "number",
+            nullable: true,
+            exclusiveMinimum: true,
+            minimum: 0,
+            example: 200,
+            description: "Order total that ships free. null or omitted = no threshold",
+          },
           deliveryEstimate: { type: "string", example: "4–7 business days" },
         },
       },
@@ -752,7 +761,13 @@ export const swaggerDocument = {
         properties: {
           regionName: { type: "string" },
           shippingFee: { type: "number", minimum: 0 },
-          freeShippingThreshold: { type: "number", exclusiveMinimum: true, minimum: 0 },
+          freeShippingThreshold: {
+            type: "number",
+            nullable: true,
+            exclusiveMinimum: true,
+            minimum: 0,
+            description: "null removes the threshold",
+          },
           deliveryEstimate: { type: "string" },
         },
       },
@@ -1450,26 +1465,31 @@ export const setupSwagger = (app: Express) => {
     swaggerUi.setup(swaggerDocument, {
       swaggerOptions: {
         persistAuthorization: true,
-        // Keep the token from POST /auth/login and send it on later requests.
+        // Put the token from POST /auth/login into the Authorize dialog (and
+        // persist it, as the dialog does), so a pasted token or Logout still
+        // take effect. Runs in the browser, so it can't use anything from
+        // this module.
         responseInterceptor: (response: { url?: string; text: string }) => {
           try {
             if (response.url && response.url.includes("/auth/login")) {
               const data = JSON.parse(response.text);
               if (data?.token) {
-                window.localStorage.setItem("stylecast_jwt_token", data.token);
+                const { ui } = window as unknown as {
+                  ui: {
+                    specSelectors: { specJson: () => { getIn: (path: string[]) => unknown } };
+                    authActions: { authorizeWithPersistOption: (auth: object) => void };
+                  };
+                };
+                const schema = ui.specSelectors.specJson().getIn(["components", "securitySchemes", "bearerAuth"]);
+                ui.authActions.authorizeWithPersistOption({
+                  bearerAuth: { name: "bearerAuth", schema, value: data.token },
+                });
               }
             }
           } catch (error) {
             console.error("Swagger login response parse error:", error);
           }
           return response;
-        },
-        requestInterceptor: (req: { headers: Record<string, string> }) => {
-          const token = window.localStorage.getItem("stylecast_jwt_token");
-          if (token) {
-            req.headers["Authorization"] = `Bearer ${token}`;
-          }
-          return req;
         },
       },
     }),
