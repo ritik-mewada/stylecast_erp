@@ -14,27 +14,15 @@ npm run format     # Prettier, no semicolons, 120 cols
 npm run build
 ```
 
-## Design phase: mock API
+## API and demo mode
 
-Every screen runs against an in-memory mock of the backend, so the UI can be built and reviewed before API integration.
+The app runs in one of two modes, chosen at build time:
 
-- `src/mocks/seed.ts`: deterministic demo data (one approved brand, pending brands, 24 products, ~84 orders over 30 days). Resets on reload.
-- `src/api/*.ts`: one module per backend resource. Each function is named after and shaped like its endpoint (`// GET /orders`, `// PATCH /orders/:id/status`, …) and mirrors the backend's rules: tenant scoping, order state machine, stock checks, restock on cancel/refund.
-- `src/types/models.ts`: mirrors the TypeORM entities.
+- **Real API** when `VITE_API_URL` is set: `cp .env.example .env.local` points it at the backend on `http://localhost:8080` (start that first, see [backend/README.md](../backend/README.md)). Sign in with an account from the backend's seed.
+- **Demo** when it isn't: everything runs on an in-memory mock with demo-account buttons on the login page and any password accepted. The GitHub Pages build uses this until the API is deployed.
 
-**API integration** = replace each function body in `src/api/` with an HTTP call. Pages and hooks don't change.
+How `src/api/` is laid out:
 
-Sign in with the demo-account buttons on the login page to see each role (owner, manager, operations, platform admin). Any password works in mock mode. The mock enforces the same role rules as the backend's `authorizeRoles()`, defined once in `PERMISSIONS` (`src/lib/domain.ts`).
-
-## Needs backend work before integration
-
-- `GET /brands?status=` and `platform_admin` role (Step 1)
-- `POST /orders` with stock locking (Step 1)
-- `GET /analytics/sales-series` (daily revenue for the dashboard chart; not in the API yet)
-- Admin platform stats (brand/user counts for `/admin`; not in the API yet)
-- `search` query param on `GET /products` (title/SKU) and `GET /orders` (customer/email/order #), plus `paymentStatus` on orders
-- `GET /inventory?page=&limit=&status=low|out&search=`: paginated variant stock list. The inventory page currently loads every product and pages in the browser.
-- `POST /uploads` (multipart → `{ url }`): product image upload. The mock stores images as data URLs.
-- `POST /auth/forgot-password` plus a reset-link flow
-- `PUT /users/me` and `PUT /users/me/password`: the Account page
-- `GET /api-docs.json` for generating API types
+- `src/api/<area>.ts`: what the pages import. Each file defines the input types and loads either `http/<area>.ts` or `mock/<area>.ts` on first use, so a build only downloads the one it uses. Both are typed against the http module, so the mock can't drift from the real signatures.
+- `src/api/http/`: Axios calls to `/api/v1`. They map API responses to the shapes in `src/types/models.ts` (pagination envelope, `null` optional fields). `client.ts` stores the JWT, sends it on every request, turns error responses into `ApiError { status, message, details }`, and signs the user out when the API rejects the token (expired, password changed elsewhere, account removed).
+- `src/api/mock/` and `src/mocks/seed.ts`: the mock backend (one approved brand, pending brands, 24 products, ~84 orders over 30 days; resets on reload). It mirrors the backend's rules: tenant scoping, the order state machine, stock checks, restock on cancel/refund, and the role rules in `PERMISSIONS` (`src/lib/domain.ts`).

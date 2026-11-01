@@ -1,4 +1,4 @@
-import { ApiError } from "@/api/mock-db"
+import { ApiError } from "@/api/errors"
 
 export const errorMessage = (error: unknown) => {
   if (error instanceof ApiError) return error.message

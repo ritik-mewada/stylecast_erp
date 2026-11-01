@@ -1,64 +1,15 @@
-import type { Brand, BrandApprovalStatus } from "@/types/models"
-import { currentBrandId, currentUser, requirePermission } from "./auth"
-import { ApiError, clone, db, delay, timestamp } from "./mock-db"
-
-// GET /brands/me
-export async function getMyBrand(): Promise<Brand> {
-  await delay()
-  const brand = db.brands.find((b) => b.id === currentBrandId())
-  if (!brand) throw new ApiError(404, "Brand not found")
-  return clone(brand)
-}
+import type { Brand } from "@/types/models"
+import type * as Impl from "./http/brands"
+import { DEMO_MODE, lazyApi } from "./mode"
 
 export type UpdateBrandInput = Partial<
   Pick<Brand, "name" | "companyInfo" | "website" | "shippingOrigin" | "brandCategory" | "contactEmail" | "contactPhone">
 >
 
-// PUT /brands/profile
-export async function updateMyBrand(input: UpdateBrandInput): Promise<Brand> {
-  await delay()
-  requirePermission("editBrand")
-  const brand = db.brands.find((b) => b.id === currentBrandId())
-  if (!brand) throw new ApiError(404, "Brand not found")
-  Object.assign(brand, input, { updatedAt: timestamp() })
-  return clone(brand)
-}
+const api = lazyApi((): Promise<typeof Impl> => (DEMO_MODE ? import("./mock/brands") : import("./http/brands")))
 
-const requireAdmin = () => {
-  if (currentUser().role !== "platform_admin") throw new ApiError(403, "Platform admin only")
-}
-
-// GET /brands?status=  (platform admin, added in Step 1)
-export async function listBrands(status?: BrandApprovalStatus): Promise<Brand[]> {
-  await delay()
-  requireAdmin()
-  return clone(
-    db.brands
-      .filter((b) => !status || b.approvalStatus === status)
-      .sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
-  )
-}
-
-// PATCH /brands/:id/approval
-export async function setBrandApproval(id: string, status: BrandApprovalStatus): Promise<Brand> {
-  await delay()
-  requireAdmin()
-  const brand = db.brands.find((b) => b.id === id)
-  if (!brand) throw new ApiError(404, "Brand not found")
-  brand.approvalStatus = status
-  brand.isActive = status !== "rejected"
-  brand.updatedAt = timestamp()
-  return clone(brand)
-}
-
-// Platform-wide counts for the admin overview. Not in the API yet.
-export async function getPlatformStats() {
-  await delay()
-  requireAdmin()
-  return {
-    brands: db.brands.length,
-    pending: db.brands.filter((b) => b.approvalStatus === "pending").length,
-    approved: db.brands.filter((b) => b.approvalStatus === "approved").length,
-    users: db.users.filter((u) => u.role !== "platform_admin").length,
-  }
-}
+export const getMyBrand = api("getMyBrand")
+export const updateMyBrand = api("updateMyBrand")
+export const listBrands = api("listBrands")
+export const setBrandApproval = api("setBrandApproval")
+export const getPlatformStats = api("getPlatformStats")

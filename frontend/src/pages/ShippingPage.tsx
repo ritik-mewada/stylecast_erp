@@ -36,7 +36,8 @@ import type { ShippingRule } from "@/types/models"
 const schema = z.object({
   regionName: z.string().trim().min(2, "Name the region"),
   shippingFee: z.number({ error: "Enter a fee" }).min(0, "Can't be negative"),
-  freeShippingThreshold: z.number({ error: "Enter an amount" }).min(0, "Can't be negative"),
+  // Empty means no free shipping; the API needs more than 0 when it's set.
+  freeShippingThreshold: z.number({ error: "Enter an amount" }).positive("Must be more than 0").nullable(),
   deliveryEstimate: z.string().trim().min(1, "e.g. 3–5 business days"),
 })
 
@@ -65,7 +66,7 @@ function RuleDialog({
             freeShippingThreshold: rule.freeShippingThreshold,
             deliveryEstimate: rule.deliveryEstimate,
           }
-        : { regionName: "", deliveryEstimate: "" },
+        : { regionName: "", freeShippingThreshold: null, deliveryEstimate: "" },
     )
   }, [open, rule, form])
 
@@ -106,15 +107,22 @@ function RuleDialog({
                 {...form.register("shippingFee", { valueAsNumber: true })}
               />
             </FormField>
-            <FormField label="Free over" htmlFor="freeShippingThreshold" error={errors.freeShippingThreshold?.message}>
+            <FormField
+              label="Free over (optional)"
+              htmlFor="freeShippingThreshold"
+              error={errors.freeShippingThreshold?.message}
+            >
               <Input
                 id="freeShippingThreshold"
                 type="number"
                 step="0.01"
                 min="0"
                 aria-invalid={!!errors.freeShippingThreshold}
+                placeholder="No free shipping"
                 {...form.register("freeShippingThreshold", {
-                  valueAsNumber: true,
+                  // Also gets the stored value: null (no threshold) must stay null, not Number(null) = 0.
+                  setValueAs: (value: string | number | null) =>
+                    value === "" || value === null ? null : Number(value),
                 })}
               />
             </FormField>
@@ -236,7 +244,9 @@ export function ShippingPage() {
                   </div>
                   <div>
                     <dt className="text-xs text-muted-foreground">Free over</dt>
-                    <dd className="text-lg font-semibold tabular-nums">{formatCurrency(rule.freeShippingThreshold)}</dd>
+                    <dd className="text-lg font-semibold tabular-nums">
+                      {rule.freeShippingThreshold === null ? "—" : formatCurrency(rule.freeShippingThreshold)}
+                    </dd>
                   </div>
                 </dl>
               </CardContent>

@@ -1,6 +1,7 @@
-import { createContext, useContext, type ReactNode } from "react"
+import { createContext, useContext, useEffect, type ReactNode } from "react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import * as authApi from "@/api/auth"
+import { setUnauthorizedHandler } from "@/api/http/client"
 import type { Session } from "@/api/auth"
 import { can, type Permission } from "@/lib/domain"
 
@@ -23,6 +24,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const dropBrandData = () =>
     queryClient.removeQueries({ predicate: (query) => query.queryKey[0] !== SESSION_QUERY_KEY[0] })
   const { data, isPending } = useQuery({ queryKey: SESSION_QUERY_KEY, queryFn: authApi.getSession })
+
+  // The API stopped accepting the token (expired, password changed elsewhere,
+  // account removed): sign out here too, and the route guards send the user to login.
+  useEffect(() => {
+    setUnauthorizedHandler(() => {
+      queryClient.removeQueries({ predicate: (query) => query.queryKey[0] !== SESSION_QUERY_KEY[0] })
+      queryClient.setQueryData(SESSION_QUERY_KEY, null)
+    })
+  }, [queryClient])
 
   const value: AuthContextValue = {
     session: data ?? null,

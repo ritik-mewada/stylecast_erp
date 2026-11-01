@@ -4,7 +4,7 @@
 
 **Location:** `frontend/` in this repo, next to `backend/`. Built as a separate repo first and moved in with `git subtree` (history kept). Each app has its own `package.json` and deploys on its own.
 
-**Status (2026-10-15):** design phase done and signed off. Every screen is built against an in-memory mock API (`src/api/*.ts`, `src/mocks/seed.ts`) whose functions mirror the backend endpoints and role rules. Next is API integration (Task 1 HTTP client, Task 0 type generation), which is blocked on the backend changes below. Frontend repo first commit: `15ec478`.
+**Status (2026-11-01):** connected to the real API (Tasks 0–1), with the mock kept as a demo mode for the GitHub Pages build until the API is deployed (see `frontend/README.md`). Earlier status (2026-10-15): design phase done and signed off. Every screen is built against an in-memory mock API (`src/api/*.ts`, `src/mocks/seed.ts`) whose functions mirror the backend endpoints and role rules. Next is API integration (Task 1 HTTP client, Task 0 type generation), which is blocked on the backend changes below. Frontend repo first commit: `15ec478`.
 
 **Prerequisite for integration:** Step 1 merged. The UI depends on the `platform_admin` role, brand-scoped inventory, `GET /brands?status=` and `POST /orders`.
 
@@ -22,7 +22,7 @@
 | UI | Tailwind CSS + shadcn/ui |
 | Charts | Recharts |
 | HTTP | Axios instance with JWT interceptor; 401 → clear session, redirect to login |
-| API types | `openapi-typescript` generated from the backend's Swagger spec |
+| API types | Hand-written in `src/types/models.ts`, with mappers in `src/api/http/`. `openapi-typescript` needs TypeScript 5 and the app is on 6; the backend's contract check keeps the spec and API in line meanwhile |
 | Auth storage | JWT in `localStorage` (no refresh tokens in the API yet); decode role/brand from the token |
 | Permissions | One `PERMISSIONS` table in `src/lib/domain.ts` mirroring `authorizeRoles()` on each route; used by the UI and enforced by the mock |
 | Headings / logo | Geist semibold; custom SVG "S" mark on terracotta |
@@ -75,15 +75,15 @@ Where the real API differs from the mock in `src/api/*`:
 - [x] `npm create vite@latest stylecast_erp_frontend -- --template react-ts`
 - [x] Tailwind + shadcn/ui init; add base components (button, input, form, table, dialog, dropdown, badge, toast, card, select)
 - [x] ESLint + Prettier, path alias `@/`
-- [ ] `.env`: `VITE_API_URL=http://localhost:<backend port>`
-- [ ] `npm run gen:api` → `openapi-typescript $VITE_API_URL/api-docs.json -o src/api/schema.d.ts`
+- [x] `.env.example`: `VITE_API_URL=http://localhost:8080`; without it the app runs in demo mode
+- [ ] ~~`npm run gen:api` with `openapi-typescript`~~ skipped: not compatible with TypeScript 6 yet (see Decisions)
 
 ## Task 1 — API layer & auth
 
 **Files:** `src/api/client.ts`, `src/api/*.ts`, `src/auth/AuthProvider.tsx`, `src/auth/RequireRole.tsx`
 
-- [ ] Axios client with base URL, `Authorization: Bearer` interceptor, 401 handler
-- [ ] Normalize backend `AppError` responses into a single error shape for toasts and form errors
+- [x] Axios client with base URL, `Authorization: Bearer` interceptor, 401 handler
+- [x] Normalize backend `AppError` responses into a single error shape for toasts and form errors
 - [x] `AuthProvider`: login, logout, current user/role/brand, persisted session
 - [x] `RequireRole` route guard; role-aware nav (hide actions a role can't perform, e.g. operations manager can't edit products)
 

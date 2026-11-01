@@ -19,6 +19,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { variantPrice } from "@/lib/domain"
+import { ApiError } from "@/api/errors"
 import { errorMessage } from "@/lib/errors"
 import { formatCurrency } from "@/lib/format"
 import { cn } from "@/lib/utils"
@@ -29,11 +30,22 @@ const schema = z.object({
   customerEmail: z.email("Enter a valid email"),
   shippingCountry: z.string().trim().min(1, "Required"),
   shippingCity: z.string().trim().min(1, "Required"),
-  shippingStateOrProvince: z.string().trim().min(1, "Required"),
+  // Optional in the API: many countries have no states or provinces.
+  shippingStateOrProvince: z.string().trim(),
   shippingPostalCode: z.string().trim().min(1, "Required"),
 })
 
 type FormValues = z.infer<typeof schema>
+
+// A 409 lists each short line as details.items: [{ sku, requested, available }].
+const orderErrorMessage = (error: unknown) => {
+  const short = error instanceof ApiError && error.status === 409 ? error.details?.items : undefined
+  if (!Array.isArray(short) || !short.length) return errorMessage(error)
+  const lines = (short as { sku: string; requested: number; available: number }[]).map(
+    (item) => `${item.sku}: ${item.available} left, ${item.requested} requested`,
+  )
+  return `Not enough stock. ${lines.join("; ")}. Adjust the quantities and try again.`
+}
 
 interface Line {
   product: Product
@@ -75,7 +87,11 @@ export function NewOrderPage() {
       toast.success("Order created")
       navigate(`/orders/${order.id}`)
     },
-    onError: (e) => setSubmitError(errorMessage(e)),
+    onError: (e) => {
+      setSubmitError(orderErrorMessage(e))
+      // Stock changed since the picker loaded: show the current numbers.
+      if (e instanceof ApiError && e.status === 409) queryClient.invalidateQueries({ queryKey: ["products"] })
+    },
   })
 
   const matches = useMemo(() => {
@@ -224,7 +240,7 @@ export function NewOrderPage() {
                 <Input id="shippingCity" aria-invalid={!!errors.shippingCity} {...form.register("shippingCity")} />
               </FormField>
               <FormField
-                label="State / province"
+                label="State / province (optional)"
                 htmlFor="shippingStateOrProvince"
                 error={errors.shippingStateOrProvince?.message}
               >

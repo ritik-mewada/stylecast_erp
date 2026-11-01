@@ -12,13 +12,7 @@ export const db = {
   sessions: seedSessions(30),
 }
 
-export class ApiError extends Error {
-  status: number
-  constructor(status: number, message: string) {
-    super(message)
-    this.status = status
-  }
-}
+export { ApiError } from "../errors"
 
 export const delay = (ms = 250 + Math.random() * 250) => new Promise((resolve) => setTimeout(resolve, ms))
 

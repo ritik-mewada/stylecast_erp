@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { Loader2Icon, PlusIcon, Trash2Icon, WandSparklesIcon } from "lucide-react"
+import { ArchiveIcon, Loader2Icon, PlusIcon, Trash2Icon, WandSparklesIcon } from "lucide-react"
 import { createProduct, deleteProduct, getProduct, updateProduct, type ProductInput } from "@/api/products"
 import { useAuth } from "@/auth/AuthProvider"
 import { ConfirmDialog } from "@/components/ConfirmDialog"
@@ -134,7 +134,7 @@ export function ProductEditorPage() {
     mutationFn: () => deleteProduct(id!),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] })
-      toast.success("Product deleted")
+      toast.success("Product archived")
       navigate("/products", { replace: true })
     },
     onError: (e) => toast.error(errorMessage(e)),
@@ -185,17 +185,17 @@ export function ProductEditorPage() {
         actions={
           editable && (
             <>
-              {!isNew && (
+              {!isNew && product.data!.status !== "archived" && (
                 <ConfirmDialog
                   trigger={
                     <Button type="button" variant="ghost" className="text-destructive" disabled={remove.isPending}>
-                      <Trash2Icon />
-                      Delete
+                      <ArchiveIcon />
+                      Archive
                     </Button>
                   }
-                  title="Delete this product?"
-                  description="Its variants and stock records are deleted too. Past orders keep their line items."
-                  confirmLabel="Delete product"
+                  title="Archive this product?"
+                  description="It leaves the catalog, inventory and order picker. Its stock records and past orders are kept, and you can set it back to active at any time."
+                  confirmLabel="Archive product"
                   destructive
                   onConfirm={() => remove.mutate()}
                 />

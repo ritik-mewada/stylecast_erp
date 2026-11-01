@@ -117,7 +117,7 @@ export interface ShippingRule {
   brandId: string
   regionName: string
   shippingFee: number
-  freeShippingThreshold: number
+  freeShippingThreshold: number | null // null: no free shipping
   deliveryEstimate: string
   createdAt: string
   updatedAt: string

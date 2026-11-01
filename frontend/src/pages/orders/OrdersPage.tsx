@@ -137,7 +137,7 @@ export function OrdersPage() {
                   <TableCell>
                     <div className="max-w-44 truncate">{order.customerName}</div>
                     <div className="hidden text-xs text-muted-foreground lg:block">
-                      {order.shippingCity}, {order.shippingStateOrProvince}
+                      {[order.shippingCity, order.shippingStateOrProvince].filter(Boolean).join(", ")}
                     </div>
                   </TableCell>
                   <TableCell className="hidden text-muted-foreground md:table-cell">
