@@ -148,6 +148,7 @@ Endpoints: `GET /orders`, `GET /orders/:id`, `POST /orders`, `PATCH /orders/:id/
 ## Extras added during design
 
 - [x] Forgot-password page, Account page (profile + password)
+- [x] Reset-password page (`/reset-password?token=…`, works signed in or out), and team role changes and removal for owners
 - [x] Product image upload UI (mocked)
 - [x] First-run setup checklist on the dashboard
 - [x] Route-level code splitting, inline error page, page-load progress bar

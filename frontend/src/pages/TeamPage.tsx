@@ -4,9 +4,10 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { Loader2Icon, UserPlusIcon } from "lucide-react"
-import { inviteUser, listUsers } from "@/api/users"
+import { Loader2Icon, UserMinusIcon, UserPlusIcon } from "lucide-react"
+import { inviteUser, listUsers, removeUser, updateUserRole } from "@/api/users"
 import { useAuth } from "@/auth/AuthProvider"
+import { ConfirmDialog } from "@/components/ConfirmDialog"
 import { FormField } from "@/components/FormField"
 import { PageHeader } from "@/components/PageHeader"
 import { SimpleSelect } from "@/components/SimpleSelect"
@@ -27,13 +28,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ROLE_LABEL } from "@/lib/domain"
 import { errorMessage } from "@/lib/errors"
 import { formatDate, initials } from "@/lib/format"
-import type { BrandRole } from "@/types/models"
+import type { BrandRole, User } from "@/types/models"
 
 const ROLE_HELP: Record<BrandRole, string> = {
   brand_owner: "Everything, including team and approvals.",
   brand_manager: "Products, inventory, shipping and brand profile.",
   operations_manager: "Orders: create, fulfil, cancel and refund.",
 }
+
+const ROLE_OPTIONS = (Object.keys(ROLE_HELP) as BrandRole[]).map((r) => ({ value: r, label: ROLE_LABEL[r] }))
 
 const schema = z.object({
   firstName: z.string().trim().min(1, "Required"),
@@ -91,12 +94,7 @@ function AddMemberDialog({ open, onOpenChange }: { open: boolean; onOpenChange: 
               control={form.control}
               name="role"
               render={({ field }) => (
-                <SimpleSelect
-                  id="m-role"
-                  value={field.value}
-                  onChange={field.onChange}
-                  options={(Object.keys(ROLE_HELP) as BrandRole[]).map((r) => ({ value: r, label: ROLE_LABEL[r] }))}
-                />
+                <SimpleSelect id="m-role" value={field.value} onChange={field.onChange} options={ROLE_OPTIONS} />
               )}
             />
           </FormField>
@@ -126,8 +124,29 @@ function AddMemberDialog({ open, onOpenChange }: { open: boolean; onOpenChange: 
 
 export function TeamPage() {
   const { can, session } = useAuth()
+  const queryClient = useQueryClient()
   const [open, setOpen] = useState(false)
   const { data, isPending } = useQuery({ queryKey: ["users"], queryFn: listUsers })
+  // Owners manage everyone but themselves; the API refuses changes to your own account (422).
+  const manages = (user: User) => can("manageUsers") && user.id !== session?.user.id
+
+  const changeRole = useMutation({
+    mutationFn: ({ user, role }: { user: User; role: BrandRole }) => updateUserRole(user.id, role),
+    onSuccess: (user) => {
+      queryClient.invalidateQueries({ queryKey: ["users"] })
+      toast.success(`${user.firstName} is now ${ROLE_LABEL[user.role].toLowerCase()}`)
+    },
+    onError: (e) => toast.error(errorMessage(e)),
+  })
+
+  const remove = useMutation({
+    mutationFn: (user: User) => removeUser(user.id),
+    onSuccess: (_, user) => {
+      queryClient.invalidateQueries({ queryKey: ["users"] })
+      toast.success(`${user.firstName} removed from the team`)
+    },
+    onError: (e) => toast.error(errorMessage(e)),
+  })
 
   return (
     <>
@@ -150,12 +169,19 @@ export function TeamPage() {
               <TableRow className="hover:bg-transparent">
                 <TableHead className="pl-4">Name</TableHead>
                 <TableHead>Role</TableHead>
-                <TableHead className="hidden pr-4 sm:table-cell">Joined</TableHead>
+                <TableHead className={can("manageUsers") ? "hidden sm:table-cell" : "hidden pr-4 sm:table-cell"}>
+                  Joined
+                </TableHead>
+                {can("manageUsers") && (
+                  <TableHead className="w-0 pr-4">
+                    <span className="sr-only">Actions</span>
+                  </TableHead>
+                )}
               </TableRow>
             </TableHeader>
             <TableBody>
               {isPending ? (
-                <TableSkeleton columns={3} rows={4} />
+                <TableSkeleton columns={can("manageUsers") ? 4 : 3} rows={4} />
               ) : (
                 data?.map((user) => (
                   <TableRow key={user.id}>
@@ -177,10 +203,54 @@ export function TeamPage() {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>{ROLE_LABEL[user.role]}</TableCell>
-                    <TableCell className="hidden pr-4 text-muted-foreground sm:table-cell">
+                    <TableCell>
+                      {manages(user) && user.role !== "platform_admin" ? (
+                        <SimpleSelect
+                          aria-label={`Role for ${user.firstName} ${user.lastName}`}
+                          className="w-36"
+                          value={user.role}
+                          onChange={(role) => {
+                            if (role && role !== user.role) changeRole.mutate({ user, role: role as BrandRole })
+                          }}
+                          options={ROLE_OPTIONS}
+                        />
+                      ) : (
+                        ROLE_LABEL[user.role]
+                      )}
+                    </TableCell>
+                    <TableCell
+                      className={
+                        can("manageUsers")
+                          ? "hidden text-muted-foreground sm:table-cell"
+                          : "hidden pr-4 text-muted-foreground sm:table-cell"
+                      }
+                    >
                       {formatDate(user.createdAt)}
                     </TableCell>
+                    {can("manageUsers") && (
+                      <TableCell className="pr-4 text-right">
+                        {manages(user) && (
+                          <ConfirmDialog
+                            trigger={
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-muted-foreground hover:text-destructive"
+                                aria-label={`Remove ${user.firstName} ${user.lastName}`}
+                                disabled={remove.isPending}
+                              >
+                                <UserMinusIcon />
+                              </Button>
+                            }
+                            title={`Remove ${user.firstName} ${user.lastName}?`}
+                            description="Their account is deleted and they're signed out at once. Orders and other records they worked on stay."
+                            confirmLabel="Remove member"
+                            destructive
+                            onConfirm={() => remove.mutate(user)}
+                          />
+                        )}
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))
               )}

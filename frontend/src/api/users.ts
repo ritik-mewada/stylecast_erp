@@ -14,3 +14,5 @@ const api = lazyApi((): Promise<typeof Impl> => (DEMO_MODE ? import("./mock/user
 
 export const listUsers = api("listUsers")
 export const inviteUser = api("inviteUser")
+export const updateUserRole = api("updateUserRole")
+export const removeUser = api("removeUser")

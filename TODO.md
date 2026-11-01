@@ -44,8 +44,8 @@ Detailed plan: [docs/plans/2026-10-15-frontend-dashboard.md](docs/plans/2026-10-
 - [x] Backend endpoints the UI needs (spec JSON, CORS, search/filters, paginated inventory, sales series, admin stats, uploads, password flows, `/users/me`)
 - [x] API integration: Axios client + JWT, `src/api/http/*` for every area; the mock stays as a demo mode for Pages until the API is deployed (then remove it and the demo accounts)
   - [x] Store the new `token` returned by `PUT /users/me/password`; treat a 401 as signed out
-  - [ ] Team page: change a member's role (`PATCH /users/:id/role`) and remove a member (`DELETE /users/:id`)
-  - [ ] Add the `/reset-password?token=…` page that the reset email links to (calls `POST /auth/reset-password`)
+  - [x] Team page: change a member's role (`PATCH /users/:id/role`) and remove a member (`DELETE /users/:id`)
+  - [x] Add the `/reset-password?token=…` page that the reset email links to (calls `POST /auth/reset-password`)
 - [x] GitHub Actions CI: lint, typecheck, build (frontend and backend)
 - [x] Mock-API demo deployed to GitHub Pages (`deploy-pages.yml`)
 - [ ] Re-enable automatic CI triggers (paused during development; manual runs only). Deploy already runs on merge.
