@@ -27,6 +27,7 @@ const pages = {
   login: page(() => import("@/pages/auth/LoginPage"), "LoginPage"),
   register: page(() => import("@/pages/auth/RegisterPage"), "RegisterPage"),
   forgotPassword: page(() => import("@/pages/auth/ForgotPasswordPage"), "ForgotPasswordPage"),
+  resetPassword: page(() => import("@/pages/auth/ResetPasswordPage"), "ResetPasswordPage"),
   dashboard: page(() => import("@/pages/DashboardPage"), "DashboardPage"),
   orders: page(() => import("@/pages/orders/OrdersPage"), "OrdersPage"),
   newOrder: page(() => import("@/pages/orders/NewOrderPage"), "NewOrderPage"),
@@ -63,6 +64,11 @@ const router = createBrowserRouter([
             ],
           },
         ],
+      },
+      // The reset link works signed in or not: a reset signs every session out anyway.
+      {
+        element: <AuthLayout />,
+        children: [{ path: "/reset-password", ...pages.resetPassword }],
       },
       {
         path: "/admin",

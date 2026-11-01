@@ -41,6 +41,11 @@ export async function requestPasswordReset(input: { email: string }): Promise<vo
   await http.post("/auth/forgot-password", input)
 }
 
+// The link's token works once. Success ends every session for the account.
+export async function resetPassword(input: { token: string; newPassword: string }): Promise<void> {
+  await http.post("/auth/reset-password", input)
+}
+
 export async function updateProfile(input: UpdateProfileInput): Promise<Session> {
   return toSession((await http.put("/users/me", input)).data)
 }

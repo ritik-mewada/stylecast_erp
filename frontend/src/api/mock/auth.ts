@@ -113,6 +113,13 @@ export async function requestPasswordReset(_input: { email: string }): Promise<v
   await delay()
 }
 
+// POST /auth/reset-password. The mock sends no email, so any non-empty token works.
+export async function resetPassword(input: { token: string; newPassword: string }): Promise<void> {
+  await delay()
+  if (!input.token) throw new ApiError(400, "This reset link is invalid or has expired")
+  if (input.newPassword.length < 8) throw new ApiError(400, "newPassword must be at least 8 characters")
+}
+
 // Proposed PUT /users/me
 export async function updateProfile(input: UpdateProfileInput): Promise<Session> {
   await delay()
