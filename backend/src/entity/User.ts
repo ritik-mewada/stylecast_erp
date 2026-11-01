@@ -47,6 +47,11 @@ export class User {
   @Column({ type: "uuid", nullable: true })
   brandId!: string | null;
 
+  // Copied into every JWT. Bumping it (on a password change or reset) makes
+  // every token issued before that stop working.
+  @Column({ type: "integer", default: 0 })
+  tokenVersion!: number;
+
   @ManyToOne(() => Brand, (brand) => brand.users, {
     onDelete: "CASCADE",
     nullable: true,

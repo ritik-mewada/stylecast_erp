@@ -103,6 +103,7 @@ export const swaggerDocument = {
       "",
       "## Authentication",
       "Protected routes need a JWT from `POST /auth/login` as `Authorization: Bearer <token>`.",
+      "Tokens last a day, but a password change or reset ends every session at once, and role changes apply on the next request.",
       "Click **Authorize** (🔒) and paste a token, or log in through `POST /auth/login` here and the token is filled in for you.",
       "It's kept across page reloads; **Logout** in the Authorize dialog clears it.",
       "",
@@ -785,7 +786,10 @@ export const swaggerDocument = {
     // ─── Reusable error responses ───────────────────────────────────────────
     responses: {
       E400: errorResponse("Invalid request (body, query or id)", "email must be a valid email address"),
-      E401: errorResponse("Missing, invalid or expired token", "Authorization token required"),
+      E401: errorResponse(
+        "Missing, invalid or expired token, or a session ended by a password change or reset (or a removed account)",
+        "Authorization token required",
+      ),
       E403: errorResponse("Your role (or account type) can't do this", "Forbidden: insufficient permissions"),
       E404: errorResponse("Not found (or belongs to another brand)", "Resource not found"),
       E409: errorResponse("Conflicts with existing data", "A user with this email already exists"),
@@ -891,6 +895,7 @@ export const swaggerDocument = {
         tags: ["Auth"],
         operationId: "resetPassword",
         summary: "Set a new password with a reset token",
+        description: "Signs the account out everywhere: tokens issued before the reset stop working.",
         security: [],
         requestBody: jsonBody("ResetPasswordRequest"),
         responses: {
@@ -929,10 +934,19 @@ export const swaggerDocument = {
         tags: ["Users"],
         operationId: "changePassword",
         summary: "Change your password",
-        description: "Any role. A wrong current password is a 400 (the session stays valid).",
+        description:
+          "Any role. A wrong current password is a 400 (the session stays valid). " +
+          "Success signs out every session, this one included, and returns a new `token` to use from now on.",
         requestBody: jsonBody("ChangePasswordRequest"),
         responses: {
-          "200": ok("Password updated", ref("MessageResponse")),
+          "200": ok("Password updated", {
+            type: "object",
+            required: ["message", "token"],
+            properties: {
+              message: { type: "string", example: "Password updated" },
+              token: { type: "string", description: "Replaces the token used for this request" },
+            },
+          }),
           ...errors(400, 401, 404),
         },
       },

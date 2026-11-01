@@ -161,7 +161,8 @@ export class AuthService {
   }
 
   // Redeems a reset link. The token row is locked so the same link can't be
-  // used twice at once; every other open link for the user stops working too.
+  // used twice at once; every other open link for the user stops working too,
+  // and so does every signed-in session (tokenVersion is bumped).
   async resetPassword(data: ResetPasswordInput) {
     const password = await bcrypt.hash(data.newPassword, 10);
 
@@ -175,7 +176,7 @@ export class AuthService {
         throw new AppError(400, "This reset link is invalid or has expired");
       }
 
-      await m.update(User, { id: record.userId }, { password });
+      await m.update(User, { id: record.userId }, { password, tokenVersion: () => '"tokenVersion" + 1' });
       record.usedAt = new Date();
       await m.save(record);
       await m.delete(PasswordResetToken, { userId: record.userId, usedAt: IsNull() });

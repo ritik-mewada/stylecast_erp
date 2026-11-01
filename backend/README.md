@@ -149,7 +149,9 @@ Errors are `{ "status": "error", "message": "…" }`, sometimes with `details`. 
 
 **Layering.** Routes → Controllers → Services → TypeORM. Routes declare the auth and validation middleware, controllers translate HTTP, and services hold the rules and throw `AppError(status, message, details?)`. One error handler turns those into responses. It also maps Postgres unique violations to 409 and invalid input to 400.
 
-**Multi-tenancy.** Every brand-scoped query filters by the `brandId` from the verified JWT, never from the request. Inventory, which has no `brandId` of its own, is scoped through `variant → product → brand`. Another brand's ids get the same 404 as missing ones, so ids don't leak. Platform admins have a null `brandId`. Brand routes reject them by role, and `getBrandId()` refuses a brandless token as a second check.
+**Sessions.** A JWT carries only the user id and a `tokenVersion`. On every request the auth middleware loads the user (one primary-key lookup), so role, brand and email always come from the database. Changing or resetting a password bumps `tokenVersion`, which ends every session at once; changing your own password returns a fresh token for the session that made the change. A removed account's tokens stop working immediately.
+
+**Multi-tenancy.** Every brand-scoped query filters by the signed-in user's `brandId` (loaded from the database, never taken from the request). Inventory, which has no `brandId` of its own, is scoped through `variant → product → brand`. Another brand's ids get the same 404 as missing ones, so ids don't leak. Platform admins have a null `brandId`. Brand routes reject them by role, and `getBrandId()` refuses a brandless token as a second check.
 
 **Stock and concurrency.** `POST /orders` runs in one transaction. It checks that the brand is approved, merges repeated variants, locks the inventory rows (`SELECT … FOR UPDATE`) sorted by `variantId`, checks stock, decrements it, and saves the order with a price snapshot. Concurrent orders for the last unit queue on the row lock, so exactly one succeeds and the others get 409. The fixed lock order prevents deadlocks between orders that share variants.
 
