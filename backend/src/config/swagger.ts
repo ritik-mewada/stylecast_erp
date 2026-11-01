@@ -111,7 +111,7 @@ export const swaggerDocument = {
       "| Role | Can |",
       "|---|---|",
       "| `platform_admin` | Review and approve brands. Has no brand and can't call brand endpoints. Created with `npm run create-admin`. |",
-      "| `brand_owner` | Everything in their brand, including inviting users and deleting shipping rules. |",
+      "| `brand_owner` | Everything in their brand, including managing the team (invite, change roles, remove) and deleting shipping rules. |",
       "| `brand_manager` | Catalog, stock, shipping, brand profile, traffic, team list, new orders. Can't change order status or refund. |",
       "| `operations_manager` | Read the catalog; create and fulfil orders. |",
       "",
@@ -611,6 +611,11 @@ export const swaggerDocument = {
           role: ref("BrandRole"),
         },
       },
+      UpdateUserRoleRequest: {
+        type: "object",
+        required: ["role"],
+        properties: { role: ref("BrandRole") },
+      },
       UpdateBrandRequest: {
         type: "object",
         description: "All fields optional. Approval status and the active flag can't be changed here.",
@@ -971,6 +976,36 @@ export const swaggerDocument = {
         responses: {
           "201": ok("Created", ref("User")),
           ...errors(400, 401, 403, 409),
+        },
+      },
+    },
+    "/users/{id}/role": {
+      patch: {
+        tags: ["Users"],
+        operationId: "updateUserRole",
+        summary: "Change a team member's role",
+        description:
+          "Roles: `brand_owner`. Applies on the member's next request. " +
+          "You can't change your own role (422), so the brand always keeps an owner.",
+        parameters: [uuidParam()],
+        requestBody: jsonBody("UpdateUserRoleRequest"),
+        responses: {
+          "200": ok("Updated", ref("User")),
+          ...errors(400, 401, 403, 404, 422),
+        },
+      },
+    },
+    "/users/{id}": {
+      delete: {
+        tags: ["Users"],
+        operationId: "removeUser",
+        summary: "Remove a team member",
+        description:
+          "Roles: `brand_owner`. Deletes the account and signs it out at once. You can't remove yourself (422).",
+        parameters: [uuidParam()],
+        responses: {
+          "200": ok("Removed", ref("MessageResponse")),
+          ...errors(400, 401, 403, 404, 422),
         },
       },
     },
