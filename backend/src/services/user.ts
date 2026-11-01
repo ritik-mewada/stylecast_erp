@@ -5,6 +5,7 @@ import { Brand } from "../entity/Brand";
 import { User } from "../entity/User";
 import { ChangePasswordInput, CreateUserInput, UpdateMeInput } from "../types/user";
 import { AppError } from "../utils/AppError";
+import { generateToken } from "../utils/jwt";
 
 // The fields of a user that are safe to send to the client.
 const toPublicUser = (user: User) => ({
@@ -85,6 +86,8 @@ export class UserService {
 
   // Wrong current passwords are a 400, not a 401: the session is still valid,
   // and clients treat 401 as "signed out".
+  // A successful change signs out every other session (tokenVersion is
+  // bumped) and returns a fresh token so this one carries on.
   async changePassword(userId: string, data: ChangePasswordInput) {
     const user = await this.findUser(userId);
 
@@ -97,9 +100,10 @@ export class UserService {
     }
 
     user.password = await bcrypt.hash(data.newPassword, 10);
+    user.tokenVersion += 1;
     await this.userRepository.save(user);
 
-    return { message: "Password updated" };
+    return { message: "Password updated", token: generateToken(user) };
   }
 
   private async findUser(userId: string) {

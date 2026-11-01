@@ -46,7 +46,7 @@
 
 - Register: creates a pending brand plus a `brand_owner`; the returned token works; slug is trimmed and lowercased; an invalid slug gives 400; a duplicate brand name or slug (ignoring case) gives 409; a duplicate email (ignoring case) gives 409; `role` in the body is ignored, so nobody can register as admin.
 - Login: right password → 200 with token; wrong password and unknown email → the same 401; mixed-case email logs in.
-- JWT: missing, malformed, expired, or signed with another secret → 401.
+- JWT: missing, malformed, expired, or signed with another secret → 401. After a password change or reset, older tokens → 401 and the token returned by the change works. A role change applies on the next request with the same token.
 - Forgot/reset password: always 200 (even for unknown emails); the emailed token resets the password; the token works once only; an expired token gives 400; the old password stops working.
 - `/users/me`: GET for a brand user and for an admin (`brand: null`); PUT changes the name; changing to an email already taken (any case) gives 409.
 - `/users/me/password`: wrong current password → 400 and the old password still works; success → new password works.
@@ -120,5 +120,4 @@ Table-driven, so adding an endpoint means adding one row.
 - Load or performance testing beyond the concurrency cases above.
 - Exact timing of the unknown-email login path (equal-timing is a security property; a timing test would be flaky in CI).
 - Graceful shutdown (process signals); manual check only.
-- Revoking tokens: the auth middleware trusts a valid JWT without loading the user, so a token stays valid until it expires (1 day by default) even if the account changes. That is a design choice to revisit separately, not a test.
 - Frontend tests (separate plan item in Step 3.5).
