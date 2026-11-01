@@ -50,4 +50,31 @@ export class UserController {
       next(err);
     }
   }
+
+  async updateRole(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const user = await userService.updateRole(
+        getBrandId(req),
+        req.user!.userId,
+        String(req.params.id),
+        req.body.role,
+      );
+      res.status(200).json(user);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async remove(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const result = await userService.removeUser(
+        getBrandId(req),
+        req.user!.userId,
+        String(req.params.id),
+      );
+      res.status(200).json(result);
+    } catch (err) {
+      next(err);
+    }
+  }
 }

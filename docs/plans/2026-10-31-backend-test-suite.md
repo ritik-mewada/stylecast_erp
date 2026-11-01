@@ -51,6 +51,7 @@
 - `/users/me`: GET for a brand user and for an admin (`brand: null`); PUT changes the name; changing to an email already taken (any case) gives 409.
 - `/users/me/password`: wrong current password → 400 and the old password still works; success → new password works.
 - `/users`: the owner can invite with a brand role; an invite with `platform_admin` → 400; a manager or ops user can't invite (403); the list contains only the caller's brand.
+- Team changes (owner only): change a role → the member's existing token gets the new permissions on the next request; remove → their token gets 401 at once; your own id → 422; another brand's user → 404; `platform_admin` as the new role → 400; manager or ops → 403.
 
 ## Task 3 — Roles and tenant isolation (`rbac.test.ts`, `tenancy.test.ts`)
 

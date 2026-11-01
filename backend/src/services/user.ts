@@ -5,6 +5,7 @@ import { Brand } from "../entity/Brand";
 import { User } from "../entity/User";
 import { ChangePasswordInput, CreateUserInput, UpdateMeInput } from "../types/user";
 import { AppError } from "../utils/AppError";
+import { UserRole } from "../utils";
 import { generateToken } from "../utils/jwt";
 
 // The fields of a user that are safe to send to the client.
@@ -56,6 +57,23 @@ export class UserService {
     });
   }
 
+  // Owners manage their team. Neither change can target yourself, so a brand
+  // always keeps at least one owner (the one making the change). The auth
+  // middleware reads the role from the database, so a new role applies on
+  // the member's next request, and a removed member is signed out at once.
+  async updateRole(brandId: string, actorId: string, userId: string, role: UserRole) {
+    const user = await this.findTeamMember(brandId, actorId, userId, "change your own role");
+    user.role = role;
+    await this.userRepository.save(user);
+    return toPublicUser(user);
+  }
+
+  async removeUser(brandId: string, actorId: string, userId: string) {
+    const user = await this.findTeamMember(brandId, actorId, userId, "remove yourself");
+    await this.userRepository.remove(user);
+    return { message: "User removed" };
+  }
+
   // The signed-in user and their brand (null for platform admins), so the
   // dashboard can restore a session from a stored token.
   async getMe(userId: string) {
@@ -104,6 +122,18 @@ export class UserService {
     await this.userRepository.save(user);
 
     return { message: "Password updated", token: generateToken(user) };
+  }
+
+  // Another brand's users get the same 404 as missing ones.
+  private async findTeamMember(brandId: string, actorId: string, userId: string, action: string) {
+    const user = await this.userRepository.findOne({ where: { id: userId, brandId } });
+    if (!user) {
+      throw new AppError(404, "User not found");
+    }
+    if (user.id === actorId) {
+      throw new AppError(422, `You can't ${action}`);
+    }
+    return user;
   }
 
   private async findUser(userId: string) {

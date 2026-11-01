@@ -111,11 +111,11 @@ All settings are environment variables (see [`.env.example`](.env.example)). Wit
 | Role | Can |
 |---|---|
 | `platform_admin` | List brands and approve or reject them. Has no brand, so brand endpoints return 403. |
-| `brand_owner` | Everything in the brand, including inviting users and deleting shipping rules |
+| `brand_owner` | Everything in the brand, including managing the team (invite, change roles, remove) and deleting shipping rules |
 | `brand_manager` | Catalog, stock, shipping, brand profile, traffic, team list, creating orders |
 | `operations_manager` | Reading the catalog; creating, fulfilling and refunding orders |
 
-Registration always creates a `brand_owner` for a new brand in `pending` status. Invites can only assign brand roles.
+Registration always creates a `brand_owner` for a new brand in `pending` status. Invites and role changes can only assign brand roles. An owner can't change their own role or remove themselves, so a brand always keeps an owner.
 
 Rejecting a brand (or revoking its approval) marks it inactive (`isActive: false`). It keeps its data and its users can still sign in, but only approved brands can take orders. Approving it again reactivates it. Brands can't change `isActive` themselves.
 
@@ -129,7 +129,7 @@ Base path `/api/v1`. Swagger has the request and response schemas and every erro
 |---|---|
 | Auth | `POST /auth/register`, `POST /auth/login`, `POST /auth/forgot-password`, `POST /auth/reset-password` |
 | Account | `GET /users/me`, `PUT /users/me`, `PUT /users/me/password` |
-| Team | `GET /users`, `POST /users` |
+| Team | `GET /users`, `POST /users`, `PATCH /users/:id/role`, `DELETE /users/:id` |
 | Brands | `GET /brands/me`, `PUT /brands/profile`; admin: `GET /brands?status=`, `GET /brands/stats`, `PATCH /brands/:id/approval` |
 | Products | `GET /products?search=&category=&status=`, `POST /products`, `GET/PUT/DELETE /products/:id` (DELETE archives) |
 | Inventory | `GET /inventory?status=low\|out&search=`, `GET/PUT /inventory/variant/:variantId`, `GET /inventory/low-stock` |
