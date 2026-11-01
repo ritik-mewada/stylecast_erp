@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { ArrowRightIcon, Loader2Icon } from "lucide-react"
+import { DEMO_MODE } from "@/api/mode"
 import { useAuth } from "@/auth/AuthProvider"
 import { homeFor } from "@/auth/guards"
 import { FormField } from "@/components/FormField"
@@ -18,7 +19,7 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>
 
-// Demo accounts from the mock seed. Remove once the real API is wired up.
+// Accounts from the mock seed, shown only in demo mode (no VITE_API_URL).
 const DEMO_ACCOUNTS = [
   { email: "camille@maisonondine.example", label: "Brand owner", name: "Camille" },
   { email: "jordan@maisonondine.example", label: "Brand manager", name: "Jordan" },
@@ -99,26 +100,28 @@ export function LoginPage() {
         </Link>
       </p>
 
-      <div className="mt-10 rounded-xl border border-dashed p-4">
-        <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Demo accounts</p>
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          {DEMO_ACCOUNTS.map((account) => (
-            <button
-              key={account.email}
-              type="button"
-              disabled={isSubmitting}
-              onClick={() => onSubmit({ email: account.email, password: "password" })}
-              className="group flex items-center justify-between rounded-lg border bg-card px-3 py-2 text-left text-sm transition-colors hover:border-foreground/25 disabled:opacity-50"
-            >
-              <span>
-                <span className="block font-medium">{account.name}</span>
-                <span className="block text-xs text-muted-foreground">{account.label}</span>
-              </span>
-              <ArrowRightIcon className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-            </button>
-          ))}
+      {DEMO_MODE && (
+        <div className="mt-10 rounded-xl border border-dashed p-4">
+          <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Demo accounts</p>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            {DEMO_ACCOUNTS.map((account) => (
+              <button
+                key={account.email}
+                type="button"
+                disabled={isSubmitting}
+                onClick={() => onSubmit({ email: account.email, password: "password" })}
+                className="group flex items-center justify-between rounded-lg border bg-card px-3 py-2 text-left text-sm transition-colors hover:border-foreground/25 disabled:opacity-50"
+              >
+                <span>
+                  <span className="block font-medium">{account.name}</span>
+                  <span className="block text-xs text-muted-foreground">{account.label}</span>
+                </span>
+                <ArrowRightIcon className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

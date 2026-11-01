@@ -252,7 +252,8 @@ export function OrderDetailPage() {
               <address className="not-italic">
                 {order.customerName}
                 <br />
-                {order.shippingCity}, {order.shippingStateOrProvince} {order.shippingPostalCode}
+                {order.shippingCity},{" "}
+                {[order.shippingStateOrProvince, order.shippingPostalCode].filter(Boolean).join(" ")}
                 <br />
                 {order.shippingCountry}
               </address>
